@@ -12,7 +12,12 @@ import java.time.Duration;
 
 @Service
 @Slf4j
-public class NaverBookAPI {
+public class NaverBookAPIService {
+
+    /* 네이버 API 요청&응답 클래스 작성
+        - 비동기식
+        - 응답 타임아웃 30초
+    * */
 
     @Value("${naver.api.client-id}")
     private String clientId;
@@ -22,7 +27,7 @@ public class NaverBookAPI {
 
     private final WebClient webClient;
 
-    public NaverBookAPI(WebClient webClient) {
+    public NaverBookAPIService(WebClient webClient) {
         this.webClient = webClient;
     }
 

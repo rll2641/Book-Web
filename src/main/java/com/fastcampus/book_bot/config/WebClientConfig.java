@@ -24,6 +24,7 @@ public class WebClientConfig {
          - 응답 타임아웃: 30초
          - 읽기/쓰기 타임아웃: 30초
     * */
+
     @Bean
     public WebClient naverAPIWebClient() {
         return WebClient.builder()
