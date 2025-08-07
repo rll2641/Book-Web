@@ -44,7 +44,7 @@ public class Book {
     @Column(name = "BOOK_ISBN")
     private Long bookIsbn;
 
-    @Column(name = "BOOK_DESCRIPTION", length = 2000)
+    @Column(name = "BOOK_DESCRIPTION", length = 5000)
     private String bookDescription;
 
     @Column(name = "BOOK_PUBDATE")

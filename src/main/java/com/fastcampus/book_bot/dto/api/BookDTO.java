@@ -16,7 +16,6 @@ public class BookDTO {
     private String publisher;
     private Long isbn;
     private String description;
-
     @JsonFormat(pattern = "yyyyMMdd")
     private LocalDate pubdate;
 

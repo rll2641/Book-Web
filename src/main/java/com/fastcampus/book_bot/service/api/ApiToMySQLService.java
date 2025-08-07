@@ -1,5 +1,6 @@
 package com.fastcampus.book_bot.service.api;
 
+import com.fastcampus.book_bot.common.response.ApiResponse;
 import com.fastcampus.book_bot.domain.Book;
 import com.fastcampus.book_bot.dto.api.BookDTO;
 import com.fastcampus.book_bot.dto.api.NaverBookResponseDTO;
@@ -33,38 +34,36 @@ public class ApiToMySQLService {
         this.naverBookAPIService = naverBookAPIService;
     }
 
-    public List<Book> searchAndSaveBooks(String query, int start, int display) {
+    @Transactional
+    public ApiResponse<NaverBookResponseDTO> searchAndSaveBooks(String query, int start, int display) {
         NaverBookResponseDTO response = naverBookAPIService.searchBooks(query, start, display);
 
         if (response.getItems() == null || response.getItems().length == 0) {
             log.warn("조건에 맞는 도서가 없습니다. 검색어: {}", query);
-            return Collections.emptyList();
+            return ApiResponse.error("검색 결과가 없습니다.");
         }
 
-        return saveBooks(response);
+        saveBooks(response);
+
+        return ApiResponse.success(response, "도서 저장 완료");
     }
 
     @Transactional
-    public List<Book> saveBooks(NaverBookResponseDTO response) {
-        List<Book> savedBooks = new ArrayList<>();
+    protected void saveBooks(NaverBookResponseDTO response) {
 
         for (BookDTO item : response.getItems()) {
             try {
                 Book book = convertToBook(item);
 
                 if (!isDuplicateBook(book)) {
-                    Book savedBook = bookRepository.save(book);
-                    savedBooks.add(savedBook);
+                    bookRepository.save(book);
                 }
             } catch (Exception e) {
                 {
                     log.error("도서 저장 중 오류 발생: {}, 도서: {}", e.getMessage(), item.getTitle());
-                    return Collections.emptyList();
                 }
             }
         }
-
-        return savedBooks;
     }
 
     private Book convertToBook(BookDTO item) {

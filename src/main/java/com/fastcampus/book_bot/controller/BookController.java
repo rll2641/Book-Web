@@ -1,6 +1,8 @@
 package com.fastcampus.book_bot.controller;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.common.response.ApiResponse;
+import com.fastcampus.book_bot.dto.api.BookDTO;
+import com.fastcampus.book_bot.dto.api.NaverBookResponseDTO;
 import com.fastcampus.book_bot.service.api.ApiToMySQLService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,15 +22,20 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<String> searchAndSaveBooks(
+    public ResponseEntity<ApiResponse<NaverBookResponseDTO>> searchAndSaveBooks(
             @RequestParam String query,
             @RequestParam(defaultValue = "1") int start,
             @RequestParam(defaultValue = "10") int display) {
 
         log.info("도서 검색 요청: query={}, start={}, display={}", query, start, display);
 
-        List<Book> bookList = apiToMySQLService.searchAndSaveBooks(query, start, display);
+        ApiResponse<NaverBookResponseDTO> apiResponse = apiToMySQLService.searchAndSaveBooks(query, start, display);
 
-        return ResponseEntity.ok("도서 저장 완료: " + bookList.size());
+        if (apiResponse.getSuccess()) {
+            return ResponseEntity.ok(apiResponse);
+        } else {
+            return ResponseEntity.badRequest().body(apiResponse);
+        }
+
     }
 }
