@@ -31,7 +31,7 @@ public class NaverBookAPIService {
         this.webClient = webClient;
     }
 
-    public Mono<NaverBookResponseDTO> searchBooks(String query, int start, int display) {
+    public NaverBookResponseDTO searchBooks(String query, int start, int display) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/book.json")
                         .queryParam("query", query)
@@ -55,6 +55,7 @@ public class NaverBookAPIService {
                 .timeout(Duration.ofSeconds(30))
                 .doOnNext(response -> log.debug("API 응답 성공: 총 {} 건", response.getTotal()))
                 .doOnError(error -> log.error("네이버 도서 API 비동기 호출 실패: {}", error.getMessage()))
-                .onErrorReturn(new NaverBookResponseDTO());
+                .onErrorReturn(new NaverBookResponseDTO())
+                .block(Duration.ofSeconds(30));
     }
 }

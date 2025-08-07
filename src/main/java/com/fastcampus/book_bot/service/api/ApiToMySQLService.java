@@ -1,14 +1,15 @@
 package com.fastcampus.book_bot.service.api;
 
 import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.dto.api.BookDTO;
 import com.fastcampus.book_bot.dto.api.NaverBookResponseDTO;
 import com.fastcampus.book_bot.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,24 +33,22 @@ public class ApiToMySQLService {
         this.naverBookAPIService = naverBookAPIService;
     }
 
-    @Transactional
-    public Mono<List<Book>> searchAndSaveBooks(String query, int start, int display) {
-        return naverBookAPIService.searchBooks(query, start, display)
-                .map(this::saveBooks)
-                .doOnNext(books -> log.info("총 {} 건의 도서가 저장되었습니다.", books.size()))
-                .doOnError(error -> log.error("도서 검색 및 저장 중 오류 발생: {}", error.getMessage()));
+    public List<Book> searchAndSaveBooks(String query, int start, int display) {
+        NaverBookResponseDTO response = naverBookAPIService.searchBooks(query, start, display);
+
+        if (response.getItems() == null || response.getItems().length == 0) {
+            log.warn("조건에 맞는 도서가 없습니다. 검색어: {}", query);
+            return Collections.emptyList();
+        }
+
+        return saveBooks(response);
     }
 
     @Transactional
     public List<Book> saveBooks(NaverBookResponseDTO response) {
         List<Book> savedBooks = new ArrayList<>();
 
-        if (response.getItems() == null || response.getItems().length == 0) {
-            log.warn("API 응답에 책 정보가 없습니다.");
-            return savedBooks;
-        }
-
-        for (NaverBookResponseDTO.NaverBookItemDTO item : response.getItems()) {
+        for (BookDTO item : response.getItems()) {
             try {
                 Book book = convertToBook(item);
 
@@ -60,6 +59,7 @@ public class ApiToMySQLService {
             } catch (Exception e) {
                 {
                     log.error("도서 저장 중 오류 발생: {}, 도서: {}", e.getMessage(), item.getTitle());
+                    return Collections.emptyList();
                 }
             }
         }
@@ -67,7 +67,7 @@ public class ApiToMySQLService {
         return savedBooks;
     }
 
-    private Book convertToBook(NaverBookResponseDTO.NaverBookItemDTO item) {
+    private Book convertToBook(BookDTO item) {
         return Book.builder()
                 .bookTitle(item.getTitle())
                 .bookAuthor(item.getAuthor())
