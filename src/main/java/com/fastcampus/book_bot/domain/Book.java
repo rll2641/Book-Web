@@ -10,6 +10,7 @@ import org.springframework.data.annotation.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "books")
@@ -25,10 +26,10 @@ public class Book {
     @Column(name = "BOOK_ID", nullable = false, updatable = false)
     private Long bookId;
 
-    @Column(name = "BOOK_TITLE", length = 100, nullable = false)
+    @Column(name = "BOOK_TITLE", length = 500, nullable = false)
     private String bookTitle;
 
-    @Column(name = "BOOK_AUTHOR", length = 200)
+    @Column(name = "BOOK_AUTHOR", length = 500)
     private String bookAuthor;
 
     @Column(name = "BOOK_LINK", length = 200)
@@ -41,13 +42,13 @@ public class Book {
     private String bookPublisher;
 
     @Column(name = "BOOK_ISBN")
-    private Integer bookIsbn;
+    private Long bookIsbn;
 
-    @Column(name = "BOOK_DESCRIPTION", length = 500)
+    @Column(name = "BOOK_DESCRIPTION", length = 2000)
     private String bookDescription;
 
     @Column(name = "BOOK_PUBDATE")
-    private LocalDateTime bookPubdate;
+    private LocalDate bookPubdate;
 
     @Column(name = "BOOK_DISCOUNT")
     private Integer bookDiscount;

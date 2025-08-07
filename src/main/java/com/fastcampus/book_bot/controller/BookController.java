@@ -4,11 +4,7 @@ import com.fastcampus.book_bot.domain.Book;
 import com.fastcampus.book_bot.service.api.ApiToMySQLService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,16 +19,16 @@ public class BookController {
         this.apiToMySQLService = apiToMySQLService;
     }
 
-    @PostMapping("/search")
-    public Mono<ResponseEntity<List<Book>>> searchAndSaveBooks(
+    @GetMapping("/search")
+    public ResponseEntity<String> searchAndSaveBooks(
             @RequestParam String query,
             @RequestParam(defaultValue = "1") int start,
             @RequestParam(defaultValue = "10") int display) {
 
         log.info("도서 검색 요청: query={}, start={}, display={}", query, start, display);
 
-        return apiToMySQLService.searchAndSaveBooks(query, start, display)
-                .map(ResponseEntity::ok)
-                .onErrorReturn(ResponseEntity.internalServerError().build());
+        List<Book> bookList = apiToMySQLService.searchAndSaveBooks(query, start, display);
+
+        return ResponseEntity.ok("도서 저장 완료: " + bookList.size());
     }
 }
