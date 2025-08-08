@@ -1,0 +1,20 @@
+<!-- 네비게이션 바 -->
+<nav th:fragment="navigation" class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="/">📚 온라인 서점</a>
+    <div class="navbar-nav ms-auto">
+                <span th:if="${session.isLoggedIn}" class="navbar-text me-3">
+                    안녕하세요, <span>사용자님</span>!
+                </span>
+      <div th:if="${session.isLoggedIn}" class="navbar-nav">
+        <a class="nav-link" href="/mypage">마이페이지</a>
+        <a class="nav-link" href="/cart">장바구니</a>
+        <a class="nav-link" href="/logout">로그아웃</a>
+      </div>
+      <div th:unless="${session.isLoggedOut}" class="navbar-nav">
+        <a class="nav-link" href="/login">로그인</a>
+        <a class="nav-link" href="/register">회원가입</a>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,15 @@
+<!-- 인기 검색어 -->
+<div th:fragment="popularKeywords" class="popular-keywords">
+  <h5>🔥 실시간 인기 검색어</h5>
+  <div class="list-group">
+    <div class="list-group-item d-flex justify-content-between align-items-center"
+         th:each="keyword, iterStat : ${popularKeywords}">
+      <div>
+        <span class="keyword-rank" th:text="${iterStat.count}">1</span>
+        <a th:href="'/search?keyword=' + ${keyword.keyword}"
+           class="text-decoration-none ms-2" th:text="${keyword.keyword}">검색어</a>
+      </div>
+      <span class="badge bg-secondary" th:text="${keyword.count}">123</span>
+    </div>
+  </div>
+</div>

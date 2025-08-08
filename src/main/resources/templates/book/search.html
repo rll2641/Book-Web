@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>검색 결과 - 온라인 서점</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .navbar-brand {
+      font-weight: bold;
+      color: #2c3e50 !important;
+    }
+    .search-container {
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .search-results-section {
+      background-color: #f8f9fa;
+      padding: 30px 0;
+      min-height: 70vh;
+    }
+    .book-card {
+      transition: transform 0.3s;
+      height: 100%;
+      border: 1px solid #dee2e6;
+    }
+    .book-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .book-thumbnail {
+      height: 250px;
+      object-fit: cover;
+      width: 100%;
+    }
+    .sidebar {
+      background-color: #ffffff;
+      border-left: 1px solid #dee2e6;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .search-info {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .book-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .book-author {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+    .book-publisher {
+      color: #6c757d;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .book-price {
+      color: #e74c3c;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    .book-description {
+      font-size: 0.9rem;
+      color: #495057;
+      line-height: 1.4;
+      max-height: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .no-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6c757d;
+    }
+    .no-results i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      color: #dee2e6;
+    }
+    .keyword-highlight {
+      background-color: #fff3cd;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    .popular-keywords {
+      margin-bottom: 30px;
+    }
+    .keyword-rank {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    .banner-item {
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    /* 페이지네이션 스타일 */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 40px 0;
+      gap: 10px;
+    }
+
+    .pagination-info {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-right: 20px;
+    }
+
+    .custom-pagination {
+      display: flex;
+      gap: 5px;
+    }
+
+    .custom-pagination .page-link {
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 8px 12px;
+      color: #495057;
+      text-decoration: none;
+      transition: all 0.3s;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .custom-pagination .page-link:hover {
+      background-color: #e9ecef;
+      border-color: #adb5bd;
+    }
+
+    .custom-pagination .page-link.active {
+      background-color: #007bff;
+      border-color: #007bff;
+      color: white;
+    }
+
+    .custom-pagination .page-link.disabled {
+      color: #6c757d;
+      pointer-events: none;
+      background-color: #f8f9fa;
+    }
+
+    .results-per-page {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .sort-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<div th:replace="~{common/navigation :: navigation}"></div>
+
+<!-- 검색 영역 -->
+<div class="container">
+  <div class="search-container">
+    <form action="/search" method="get" class="d-flex">
+      <select name="searchType" class="form-select me-2" style="width: 120px;">
+        <option value="all" th:selected="${search.searchType == 'all'}">전체</option>
+        <option value="title" th:selected="${search.searchType == 'title'}">책 제목</option>
+        <option value="author" th:selected="${search.searchType == 'author'}">저자</option>
+        <option value="publisher" th:selected="${search.searchType == 'publisher'}">출판사</option>
+      </select>
+      <input type="text" name="keyword" class="form-control me-2"
+             th:value="${search.keyword}"
+             placeholder="책 제목, 저자, 출판사로 검색하세요" required>
+      <button class="btn btn-primary" type="submit">검색</button>
+    </form>
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- 메인 콘텐츠 -->
+    <div class="col-md-9">
+      <!-- 검색 결과 -->
+      <div class="search-results-section">
+        <div class="container">
+          <!-- 검색 정보 -->
+          <div class="search-info">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h4 class="mb-1">
+                  '<span class="keyword-highlight" th:text="${search.keyword}">검색어</span>' 검색 결과
+                </h4>
+                <p class="mb-0 text-muted">
+                  총 <strong th:text="${search.searchResult.totalElements ?: 0}">0</strong>개의 책을 찾았습니다.
+                  <span th:if="${search.searchType != 'all'}" class="ms-2">
+                    (<span th:text="${search.searchType == 'title' ? '제목' : (search.searchType == 'author' ? '저자' : '출판사')}">검색타입</span> 검색)
+                  </span>
+                </p>
+              </div>
+              <div class="sort-controls">
+                <!-- 정렬 선택 -->
+                <select id="sortSelect" class="form-select form-select-sm" style="width: 140px;" onchange="changeSortOption()">
+                  <option value="bookPubdate,desc" th:selected="${search.sortProperty == 'bookPubdate' and search.sortDirection == 'DESC'}">최신순</option>
+                  <option value="bookPubdate,asc" th:selected="${search.sortProperty == 'bookPubdate' and search.sortDirection == 'ASC'}">오래된순</option>
+                  <option value="bookDiscount,asc" th:selected="${search.sortProperty == 'bookDiscount' and search.sortDirection == 'ASC'}">가격 낮은순</option>
+                  <option value="bookDiscount,desc" th:selected="${search.sortProperty == 'bookDiscount' and search.sortDirection == 'DESC'}">가격 높은순</option>
+                </select>
+
+                <!-- 페이지당 개수 선택 -->
+                <select id="sizeSelect" class="form-select form-select-sm" style="width: 80px;" onchange="changePageSize()">
+                  <option value="10" th:selected="${search.pageSize == 10}">10</option>
+                  <option value="20" th:selected="${search.pageSize == 20}">20</option>
+                  <option value="30" th:selected="${search.pageSize == 30}">30</option>
+                </select>
+                <span class="text-muted">개</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 검색 결과가 있는 경우 -->
+          <div th:if="${not #lists.isEmpty(search.searchResult.content)}" class="row">
+            <div class="col-md-4 col-lg-3 mb-4" th:each="book : ${search.searchResult.content}">
+              <div class="card book-card h-100">
+                <img th:src="${book.bookImage}"
+                     th:alt="${book.bookTitle}"
+                     class="card-img-top book-thumbnail"
+                     onerror="this.src='/images/no-image.png'">
+                <div class="card-body d-flex flex-column">
+                  <h6 class="book-title" th:text="${book.bookTitle}">책 제목</h6>
+                  <p class="book-author" th:text="'저자: ' + ${book.bookAuthor}">저자: 작가명</p>
+                  <p class="book-publisher" th:text="'출판사: ' + ${book.bookPublisher}">출판사: 출판사명</p>
+
+                  <!-- 출간일 -->
+                  <p class="text-muted small" th:if="${book.bookPubdate}">
+                    출간일: <span th:text="${#temporals.format(book.bookPubdate, 'yyyy.MM.dd')}">2024.01.01</span>
+                  </p>
+
+                  <!-- 책 설명 (간략) -->
+                  <p class="book-description flex-grow-1" th:if="${book.bookDescription}"
+                     th:text="${#strings.abbreviate(book.bookDescription, 100)}">
+                    책 설명이 여기에 표시됩니다...
+                  </p>
+
+                  <div class="mt-auto">
+                    <!-- 가격 (할인가가 있는 경우) -->
+                    <div th:if="${book.bookDiscount}">
+                      <p class="book-price mb-2" th:text="${#numbers.formatInteger(book.bookDiscount, 0, 'COMMA')} + '원'">15,000원</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                      <a th:href="'/book/' + ${book.bookId}" class="btn btn-outline-primary btn-sm">상세보기</a>
+                      <a th:href="${book.bookLink}" target="_blank" class="btn btn-primary btn-sm" th:if="${book.bookLink}">
+                        구매하기
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 페이지네이션 -->
+          <div th:if="${not #lists.isEmpty(search.searchResult.content) and search.searchResult.totalPages > 1}" class="pagination-container">
+            <div class="pagination-info" th:if="${search.searchResult.totalElements > 0}">
+              <span th:text="${search.searchResult.number * search.searchResult.size + 1}">1</span>-<span th:text="${#numbers.formatInteger(search.searchResult.number + 1 < search.searchResult.totalPages ? (search.searchResult.number + 1) * search.searchResult.size : search.searchResult.totalElements, 0, 'COMMA')}">10</span>
+              of <span th:text="${#numbers.formatInteger(search.searchResult.totalElements, 0, 'COMMA')}">100</span>
+            </div>
+
+            <nav class="custom-pagination" th:with="totalPages=${search.searchResult.totalPages}, currentPage=${search.searchResult.number + 1}, startPage=${T(java.lang.Math).max(1, currentPage - 2)}, endPage=${T(java.lang.Math).min(totalPages, currentPage + 2)}">
+              <!-- 첫 페이지 -->
+              <a th:if="${currentPage > 1}"
+                 th:href="@{/search(keyword=${search.keyword}, searchType=${search.searchType}, page=0, size=${search.pageSize}, sort=${search.sortProperty + ',' + search.sortDirection})}"
+                 class="page-link">
+                <i class="fas fa-angle-double-left"></i>
+              </a>
+
+              <!-- 이전 페이지 -->
+              <a th:if="${currentPage > 1}"
+                 th:href="@{/search(keyword=${search.keyword}, searchType=${search.searchType}, page=${currentPage - 2}, size=${search.pageSize}, sort=${search.sortProperty + ',' + search.sortDirection})}"
+                 class="page-link">
+                <i class="fas fa-angle-left"></i>
+              </a>
+
+              <!-- 페이지 번호들 -->
+              <span th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+                <a th:if="${pageNum != currentPage}"
+                   th:href="@{/search(keyword=${search.keyword}, searchType=${search.searchType}, page=${pageNum - 1}, size=${search.pageSize}, sort=${search.sortProperty + ',' + search.sortDirection})}"
+                   th:text="${pageNum}"
+                   class="page-link">1</a>
+                <span th:if="${pageNum == currentPage}"
+                      th:text="${pageNum}"
+                      class="page-link active">1</span>
+              </span>
+
+              <!-- 다음 페이지 -->
+              <a th:if="${currentPage < totalPages}"
+                 th:href="@{/search(keyword=${search.keyword}, searchType=${search.searchType}, page=${currentPage}, size=${search.pageSize}, sort=${search.sortProperty + ',' + search.sortDirection})}"
+                 class="page-link">
+                <i class="fas fa-angle-right"></i>
+              </a>
+
+              <!-- 마지막 페이지 -->
+              <a th:if="${currentPage < totalPages}"
+                 th:href="@{/search(keyword=${search.keyword}, searchType=${search.searchType}, page=${totalPages - 1}, size=${search.pageSize}, sort=${search.sortProperty + ',' + search.sortDirection})}"
+                 class="page-link">
+                <i class="fas fa-angle-double-right"></i>
+              </a>
+            </nav>
+          </div>
+
+          <!-- 검색 결과가 없는 경우 -->
+          <div th:if="${#lists.isEmpty(search.searchResult.content)}" class="no-results">
+            <div class="mb-4">
+              <i class="fas fa-search"></i>
+            </div>
+            <h4 class="mb-3">검색 결과가 없습니다</h4>
+            <p class="mb-4">
+              '<strong th:text="${search.keyword}">검색어</strong>'에 대한 검색 결과를 찾을 수 없습니다.<br>
+              다른 검색어로 다시 시도해보세요.
+            </p>
+            <div class="mt-4">
+              <h6>검색 팁:</h6>
+              <ul class="list-unstyled text-start" style="max-width: 400px; margin: 0 auto;">
+                <li>• 검색어의 철자를 확인해보세요</li>
+                <li>• 더 간단한 검색어를 사용해보세요</li>
+                <li>• 검색 범위를 '전체'로 변경해보세요</li>
+                <li>• 저자명이나 출판사로 검색해보세요</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 사이드바 -->
+    <div class="col-md-3 sidebar">
+      <!-- 인기 검색어 -->
+      <div class="popular-keywords">
+        <h5 class="mb-3">🔥 인기 검색어</h5>
+        <div class="list-group">
+          <div class="d-flex justify-content-between align-items-center p-2">
+            <span class="keyword-rank">1</span>
+            <a href="/search?keyword=소설" class="text-decoration-none">소설</a>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2">
+            <span class="keyword-rank">2</span>
+            <a href="/search?keyword=자기계발" class="text-decoration-none">자기계발</a>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2">
+            <span class="keyword-rank">3</span>
+            <a href="/search?keyword=경제" class="text-decoration-none">경제</a>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2">
+            <span class="keyword-rank">4</span>
+            <a href="/search?keyword=역사" class="text-decoration-none">역사</a>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2">
+            <span class="keyword-rank">5</span>
+            <a href="/search?keyword=과학" class="text-decoration-none">과학</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 추천 도서 -->
+      <div class="mb-4">
+        <h5 class="mb-3">📚 추천 도서</h5>
+        <div class="banner-item">
+          <h6 class="small">오늘의 추천</h6>
+          <p class="small mb-2">새로 출간된 베스트셀러를 만나보세요!</p>
+          <a href="/bestseller" class="btn btn-outline-secondary btn-sm">더보기</a>
+        </div>
+        <div class="banner-item">
+          <h6 class="small">신간 도서</h6>
+          <p class="small mb-2">이번 주 새로 출간된 도서들</p>
+          <a href="/new-books" class="btn btn-outline-secondary btn-sm">더보기</a>
+        </div>
+      </div>
+
+      <!-- 카테고리 바로가기 -->
+      <div class="mb-4">
+        <h5 class="mb-3">📋 카테고리</h5>
+        <div class="d-grid gap-2">
+          <a href="/search?searchType=all&keyword=소설" class="btn btn-outline-primary btn-sm">소설</a>
+          <a href="/search?searchType=all&keyword=자기계발" class="btn btn-outline-primary btn-sm">자기계발</a>
+          <a href="/search?searchType=all&keyword=경제경영" class="btn btn-outline-primary btn-sm">경제/경영</a>
+          <a href="/search?searchType=all&keyword=인문학" class="btn btn-outline-primary btn-sm">인문학</a>
+          <a href="/search?searchType=all&keyword=과학" class="btn btn-outline-primary btn-sm">과학</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function changeSortOption() {
+    const sortSelect = document.getElementById('sortSelect');
+    const selectedSort = sortSelect.value;
+
+    const url = new URL(window.location);
+    url.searchParams.set('sort', selectedSort);
+    url.searchParams.set('page', '0'); // 정렬 변경시 첫 페이지로 이동
+
+    window.location.href = url.toString();
+  }
+
+  function changePageSize() {
+    const sizeSelect = document.getElementById('sizeSelect');
+    const selectedSize = sizeSelect.value;
+
+    const url = new URL(window.location);
+    url.searchParams.set('size', selectedSize);
+    url.searchParams.set('page', '0'); // 페이지 크기 변경시 첫 페이지로 이동
+
+    window.location.href = url.toString();
+  }
+</script>
+</body>
+</html>

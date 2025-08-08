@@ -1,23 +1,20 @@
-package com.fastcampus.book_bot.controller;
+package com.fastcampus.book_bot.controller.api;
 
 import com.fastcampus.book_bot.common.response.ApiResponse;
-import com.fastcampus.book_bot.dto.api.BookDTO;
 import com.fastcampus.book_bot.dto.api.NaverBookResponseDTO;
 import com.fastcampus.book_bot.service.api.ApiToMySQLService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/books")
 @Slf4j
-public class BookController {
+public class NaverBookApiController {
 
     private final ApiToMySQLService apiToMySQLService;
 
-    public BookController(ApiToMySQLService apiToMySQLService) {
+    public NaverBookApiController(ApiToMySQLService apiToMySQLService) {
         this.apiToMySQLService = apiToMySQLService;
     }
 
