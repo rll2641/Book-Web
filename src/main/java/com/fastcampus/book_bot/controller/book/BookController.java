@@ -12,6 +12,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -40,5 +43,17 @@ public class BookController {
         model.addAttribute("search", searchDTO);
 
         return "book/search";
+    }
+
+    @GetMapping("/book/{bookId}")
+    public String bookDetail(@PathVariable Long bookId, Model model) {
+
+        Optional<Book> book = bookSearchService.getBookById(bookId);
+        if (book.isPresent()) {
+            model.addAttribute("book", book.get());
+            return "book/detail";
+        } else {
+            return "error/404";
+        }
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 public class BookSearchService {
@@ -36,6 +38,24 @@ public class BookSearchService {
         } catch (Exception e) {
             log.warn("도서 검색 중 오류 발생! 조건: {}, 키워드 {}", searchType, keyword);
             return Page.empty(pageable);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Book> getBookById(Long bookId) {
+        log.info("도서 상세 조회 - bookId: {}", bookId);
+
+        try {
+            Optional<Book> book = bookRepository.findById(bookId);
+            if (book.isPresent()) {
+                return book;
+            } else {
+                log.warn("도서를 찾을 수 없습니다. ID: {}", bookId);
+                return Optional.empty();
+            }
+        } catch (Exception e) {
+            log.error("도서 검색 중 오류 발생! 도서 ID: {}", bookId);
+            return Optional.empty();
         }
     }
 }
