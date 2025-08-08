@@ -1,0 +1,20 @@
+<!-- 최근 조회한 책 -->
+<div th:fragment="recentBooks" class="recent-books" th:if="${session.user}">
+  <h5>👀 최근 조회한 책</h5>
+  <div class="banner-item" th:each="book : ${recentBooks}">
+    <div class="row">
+      <div class="col-4">
+        <img th:src="${book.thumbnailUrl}" class="img-fluid"
+             th:alt="${book.title}" style="height: 60px; object-fit: cover;">
+      </div>
+      <div class="col-8">
+        <small>
+          <a th:href="'/book/' + ${book.id}"
+             class="text-decoration-none" th:text="${book.title}">책 제목</a>
+        </small>
+        <br>
+        <small class="text-muted" th:text="${book.author}">저자</small>
+      </div>
+    </div>
+  </div>
+</div>
