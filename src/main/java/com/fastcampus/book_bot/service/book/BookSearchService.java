@@ -26,14 +26,14 @@ public class BookSearchService {
         try {
             switch (searchType) {
                 case "title":
-                    return bookRepository.findByBookTitleContaining(keyword, pageable);
+                    return bookRepository.findByBookNameContaining(keyword, pageable);
                 case "author":
                     return bookRepository.findByBookAuthorContaining(keyword, pageable);
                 case "publisher":
                     return bookRepository.findByBookPublisherContaining(keyword, pageable);
                 case "all":
                 default:
-                    return bookRepository.findByBookTitleContainingOrBookAuthorContainingOrBookPublisherContaining(keyword, keyword, keyword, pageable);
+                    return bookRepository.findByBookNameContainingOrBookAuthorContainingOrBookPublisherContaining(keyword, keyword, keyword, pageable);
             }
         } catch (Exception e) {
             log.warn("도서 검색 중 오류 발생! 조건: {}, 키워드 {}", searchType, keyword);

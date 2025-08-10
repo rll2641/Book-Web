@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @Slf4j
@@ -47,11 +48,12 @@ public class ApiToMySQLService {
 
     @Transactional
     protected void saveBooks(NaverBookResponseDTO response) {
+        Random random = new Random();
 
         for (BookDTO item : response.getItems()) {
             try {
                 Book book = convertToBook(item);
-
+                book.setBookQuantity(30 + random.nextInt(21));
                 if (!isDuplicateBook(book)) {
                     bookRepository.save(book);
                 }
@@ -65,12 +67,12 @@ public class ApiToMySQLService {
 
     private Book convertToBook(BookDTO item) {
         return Book.builder()
-                .bookTitle(item.getTitle())
+                .bookName(item.getTitle())
                 .bookAuthor(item.getAuthor())
                 .bookLink(item.getLink())
-                .bookImage(item.getImage())
+                .bookImagePath(item.getImage())
                 .bookPublisher(item.getPublisher())
-                .bookIsbn(item.getIsbn())
+                .bookIsbn(String.valueOf(item.getIsbn()))
                 .bookDescription(item.getDescription())
                 .bookPubdate(item.getPubdate())
                 .bookDiscount(item.getDiscount())
@@ -79,7 +81,7 @@ public class ApiToMySQLService {
 
     private boolean isDuplicateBook(Book book) {
 
-        if (book.getBookIsbn() != null && book.getBookIsbn() != 0) {
+        if (book.getBookIsbn() != null && book.getBookIsbn().equals("0")) {
             Optional<Book> existingBook = bookRepository.findByBookIsbn(book.getBookIsbn());
             return existingBook.isPresent();
         }

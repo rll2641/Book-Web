@@ -11,10 +11,10 @@ import java.util.Optional;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
-    Optional<Book> findByBookIsbn(Long bookIsbn);
-    Page<Book> findByBookTitleContaining(String bookTitle, Pageable pageable);
+    Optional<Book> findByBookIsbn(String bookIsbn);
+    Page<Book> findByBookNameContaining(String bookTitle, Pageable pageable);
     Page<Book> findByBookAuthorContaining(String bookAuthor, Pageable pageable);
     Page<Book> findByBookPublisherContaining(String bookPublisher, Pageable pageable);
-    Page<Book> findByBookTitleContainingOrBookAuthorContainingOrBookPublisherContaining(String bookTitle, String bookAuthor, String bookPublisher, Pageable pageable);
+    Page<Book> findByBookNameContainingOrBookAuthorContainingOrBookPublisherContaining(String bookTitle, String bookAuthor, String bookPublisher, Pageable pageable);
 
 }
