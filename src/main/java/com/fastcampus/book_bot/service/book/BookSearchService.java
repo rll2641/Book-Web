@@ -1,6 +1,6 @@
 package com.fastcampus.book_bot.service.book;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

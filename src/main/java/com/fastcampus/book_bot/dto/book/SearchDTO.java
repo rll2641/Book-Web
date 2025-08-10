@@ -1,6 +1,6 @@
 package com.fastcampus.book_bot.dto.book;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

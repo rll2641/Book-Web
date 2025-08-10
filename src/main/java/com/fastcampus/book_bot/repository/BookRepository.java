@@ -1,6 +1,6 @@
 package com.fastcampus.book_bot.repository;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,7 +1,7 @@
 package com.fastcampus.book_bot.service.api;
 
 import com.fastcampus.book_bot.common.response.ApiResponse;
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.dto.api.BookDTO;
 import com.fastcampus.book_bot.dto.api.NaverBookResponseDTO;
 import com.fastcampus.book_bot.repository.BookRepository;
@@ -9,9 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 @Service

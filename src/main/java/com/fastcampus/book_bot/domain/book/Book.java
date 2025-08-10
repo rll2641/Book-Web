@@ -1,4 +1,4 @@
-package com.fastcampus.book_bot.domain;
+package com.fastcampus.book_bot.domain.book;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Id;

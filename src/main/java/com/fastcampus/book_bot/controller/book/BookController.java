@@ -1,6 +1,6 @@
 package com.fastcampus.book_bot.controller.book;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.dto.book.SearchDTO;
 import com.fastcampus.book_bot.service.book.BookSearchService;
 import lombok.extern.slf4j.Slf4j;
