@@ -234,12 +234,12 @@
           <div th:if="${not #lists.isEmpty(search.searchResult.content)}" class="row">
             <div class="col-md-4 col-lg-3 mb-4" th:each="book : ${search.searchResult.content}">
               <div class="card book-card h-100">
-                <img th:src="${book.bookImage}"
-                     th:alt="${book.bookTitle}"
+                <img th:src="${book.bookImagePath}"
+                     th:alt="${book.bookName}"
                      class="card-img-top book-thumbnail"
                      onerror="this.src='/images/no-image.png'">
                 <div class="card-body d-flex flex-column">
-                  <h6 class="book-title" th:text="${book.bookTitle}">책 제목</h6>
+                  <h6 class="book-title" th:text="${book.bookName}">책 제목</h6>
                   <p class="book-author" th:text="'저자: ' + ${book.bookAuthor}">저자: 작가명</p>
                   <p class="book-publisher" th:text="'출판사: ' + ${book.bookPublisher}">출판사: 출판사명</p>
 

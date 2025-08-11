@@ -23,7 +23,6 @@ public class ApiToMySQLService {
      * - 트랜잭션을 사용하여 데이터 일관성 유지
     * */
 
-
     private final BookRepository bookRepository;
     private final NaverBookAPIService naverBookAPIService;
 
@@ -80,11 +79,13 @@ public class ApiToMySQLService {
     }
 
     private boolean isDuplicateBook(Book book) {
+        String isbn = book.getBookIsbn();
 
-        if (book.getBookIsbn() != null && book.getBookIsbn().equals("0")) {
-            Optional<Book> existingBook = bookRepository.findByBookIsbn(book.getBookIsbn());
-            return existingBook.isPresent();
+        if (isbn == null || isbn.trim().isEmpty() || isbn.equals("0")) {
+            return false;
         }
-        return false;
+
+        Optional<Book> existingBook = bookRepository.findByBookIsbn(isbn);
+        return existingBook.isPresent();
     }
 }
