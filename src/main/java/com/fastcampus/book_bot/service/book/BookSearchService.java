@@ -42,7 +42,7 @@ public class BookSearchService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Book> getBookById(Long bookId) {
+    public Optional<Book> getBookById(Integer bookId) {
         log.info("도서 상세 조회 - bookId: {}", bookId);
 
         try {

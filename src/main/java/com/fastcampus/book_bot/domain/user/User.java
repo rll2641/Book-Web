@@ -2,10 +2,9 @@ package com.fastcampus.book_bot.domain.user;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -13,12 +12,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "USER")
+@Table(name = "user")
 @EntityListeners(AuditingEntityListener.class)
-@Data
 @Builder
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class User {
 
     @Id
@@ -27,7 +27,7 @@ public class User {
     private Integer userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "GRADE_ID", nullable = false)
+    @JoinColumn(name = "GRADE_ID", nullable = false, insertable = false)
     private UserGrade userGrade;
 
     @Column(name = "USER_EMAIL", length = 30)
@@ -40,13 +40,16 @@ public class User {
     @Column(name = "USER_NAME", length = 30)
     private String userName;
 
+    @Column(name = "USER_NICKNAME", length = 20)
+    private String userNickname;
+
     @Column(name = "USER_PHONE", length = 30)
     private String userPhone;
 
     @Column(name = "USER_STATUS", length = 50, nullable = false)
-    private String userStatus = "ACTIVE";
+    private String userStatus;
 
-    @Column(name = "POINT")
+    @Column(name = "POINT", insertable = false)
     private Integer point;
 
     @Column(name = "POSTCODE")
@@ -74,4 +77,5 @@ public class User {
     @LastModifiedDate
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
+
 }

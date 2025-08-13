@@ -17,6 +17,14 @@ public class ApiResponse<T> {
     private T data;
     private String errorCode;
 
+    /* 성공 응답 (메시지) */
+    public static <T> ApiResponse<T> success(String message) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .message(message)
+                .build();
+    }
+
     /* 성공 응답 (응답 데이터) */
     public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()

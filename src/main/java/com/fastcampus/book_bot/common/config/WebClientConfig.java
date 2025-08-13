@@ -1,4 +1,4 @@
-package com.fastcampus.book_bot.config;
+package com.fastcampus.book_bot.common.config;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;

@@ -12,7 +12,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "USER_GRADE")  // 테이블명 수정
+@Table(name = "user_grade")
 @EntityListeners(AuditingEntityListener.class)
 @Data
 @Builder
@@ -20,13 +20,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class UserGrade {
 
+    public static UserGrade defaultGrade;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "GRADE_ID", updatable = false, nullable = false)
     private Integer gradeId;
 
     @Column(name = "GRADE_NAME", nullable = false)
-    private String gradeName = "BRONZE";
+    private String gradeName;
 
     @Column(name = "MIN_USAGE")
     private Integer minUsage;

@@ -46,7 +46,7 @@ public class BookController {
     }
 
     @GetMapping("/book/{bookId}")
-    public String bookDetail(@PathVariable Long bookId, Model model) {
+    public String bookDetail(@PathVariable Integer bookId, Model model) {
 
         Optional<Book> book = bookSearchService.getBookById(bookId);
         if (book.isPresent()) {

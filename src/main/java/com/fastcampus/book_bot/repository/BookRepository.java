@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface BookRepository extends JpaRepository<Book, Integer> {
 
     Optional<Book> findByBookIsbn(String bookIsbn);
     Page<Book> findByBookNameContaining(String bookTitle, Pageable pageable);
