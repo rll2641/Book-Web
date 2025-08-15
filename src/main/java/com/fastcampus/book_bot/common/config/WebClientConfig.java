@@ -16,7 +16,7 @@ import java.time.Duration;
 @Configuration
 public class WebClientConfig {
 
-    /* 네이버 API를 호출하기 위한 WebClient 설정
+    /** 네이버 API를 호출하기 위한 WebClient 설정
          - 기본 URL: https://openapi.naver.com/v1/search
          - 요청 헤더: Content-Type을 application/json으로 설정
          - 최대 메모리 크기: 4MB로 설정

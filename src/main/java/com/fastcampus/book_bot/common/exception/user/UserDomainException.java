@@ -16,8 +16,6 @@ public class UserDomainException extends BaseDomainException {
         super(message, errorCode, "USER", httpStatus, errorDetails);
     }
 
-    // ============== HttpStatus 기반 범용 팩토리 메서드 ==============
-
     /**
      * BAD_REQUEST (400) 예외 생성
      */

@@ -431,7 +431,7 @@
                                maxlength="6">
                         <button type="button" class="btn btn-verify" onclick="verifyEmail()">인증확인</button>
                       </div>
-                      <small class="text-muted">이메일로 발송된 인증번호를 입력해주세요. (유효시간: <span id="timer">5:00</span>)</small>
+                      <small class="text-muted">이메일로 발송된 인증번호를 입력해주세요. (유효시간: <span id="timer">10:00</span>)</small>
                     </div>
                   </div>
 
@@ -545,7 +545,7 @@
   // 전역 변수
   let emailVerified = false;
   let verificationTimer = null;
-  let verificationTimeLeft = 300; // 5분
+  let verificationTimeLeft = 600; // 10분
 
   // 회원가입 처리 함수
   async function handleSignup(event) {
@@ -578,11 +578,7 @@
       nickname: formData.get('nickname'),
       email: formData.get('email'),
       password: formData.get('password'),
-      passwordConfirm: formData.get('passwordConfirm'),
-      phone: formData.get('phone'),
-      birthDate: formData.get('birthDate'),
-      agreeTerms: formData.get('agreeTerms') === 'on',
-      emailVerified: emailVerified
+      phone: formData.get('phone') || null
     };
 
     try {
@@ -714,10 +710,9 @@
       const response = await fetch(`/api/member/check-email?userEmail=${encodeURIComponent(email)}`);
       const result = await response.json();
 
-      // ApiResponse 기반 응답 처리
       if (result.success) {
-        // 컨트롤러에서 중복일 때 "중복된 이메일입니다." 메시지를 반환
-        if (result.message && result.message.includes('중복')) {
+        // 컨트롤러 로직에서 중복일 때 "이미 사용 중인 닉네임입니다", 사용가능일 때 "사용 가능한 닉네임입니다" 반환
+        if (result.message && result.message.includes('이미 사용 중인')) {
           showFieldFeedback('emailFeedback', result.message, 'error');
           sendBtn.disabled = true;
         } else {
@@ -756,10 +751,9 @@
       const response = await fetch(`/api/member/check-nickname?nickname=${encodeURIComponent(nickname)}`);
       const result = await response.json();
 
-      // ApiResponse 기반 응답 처리
       if (result.success) {
-        // 컨트롤러에서 중복일 때 "중복된 닉네임입니다." 메시지를 반환
-        if (result.message && result.message.includes('중복')) {
+        // 컨트롤러 로직에서 중복일 때 "이미 사용 중인 이메일입니다", 사용가능일 때 "사용 가능한 이메일입니다" 반환
+        if (result.message && result.message.includes('이미 사용 중인')) {
           showFieldFeedback('nicknameFeedback', result.message, 'error');
         } else {
           showFieldFeedback('nicknameFeedback', result.message, 'success');
@@ -866,14 +860,16 @@
       const result = await response.json();
 
       if (result.success) {
-        // 인증 성공 메시지 확인 (컨트롤러에서 "이메일 검증 성공" 반환)
-        if (result.message && result.message.includes('성공')) {
-          emailVerified = true;
-          showSuccess('이메일 인증이 완료되었습니다!');
-          showFieldFeedback('emailFeedback', '인증 완료 ✓', 'success');
-        } else {
-          // 인증 실패 ("인증번호가 틀립니다" 메시지)
-          showError(result.message);
+        emailVerified = true;
+        showSuccess(result.message);
+        showFieldFeedback('emailFeedback', '인증 완료 ✓', 'success');
+
+        // 인증 완료 후 인증 영역 숨기기
+        document.getElementById('emailVerification').style.display = 'none';
+
+        // 타이머 정지
+        if (verificationTimer) {
+          clearInterval(verificationTimer);
         }
       } else {
         showError(result.message || '이메일 인증에 실패했습니다.');
@@ -883,6 +879,37 @@
       console.error('이메일 인증 오류:', error);
       showError('이메일 인증 중 오류가 발생했습니다.');
     }
+  }
+
+  // 인증 타이머 시작
+  function startVerificationTimer() {
+    verificationTimeLeft = 600; // 10분
+
+    if (verificationTimer) {
+      clearInterval(verificationTimer);
+    }
+
+    verificationTimer = setInterval(() => {
+      verificationTimeLeft--;
+
+      const minutes = Math.floor(verificationTimeLeft / 60);
+      const seconds = verificationTimeLeft % 60;
+      const timerDisplay = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      const timerElement = document.getElementById('timer');
+      timerElement.textContent = timerDisplay;
+
+      if (verificationTimeLeft <= 60) {
+        timerElement.classList.add('timer-warning');
+      }
+
+      if (verificationTimeLeft <= 0) {
+        clearInterval(verificationTimer);
+        timerElement.textContent = '시간 만료';
+        showError('인증시간이 만료되었습니다. 다시 인증번호를 요청해주세요.');
+        document.getElementById('emailVerification').style.display = 'none';
+      }
+    }, 1000);
   }
 
   // 페이지 로드 시 이벤트 리스너 등록
