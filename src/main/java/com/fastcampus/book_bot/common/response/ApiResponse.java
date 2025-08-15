@@ -3,14 +3,14 @@ package com.fastcampus.book_bot.common.response;
 import lombok.Builder;
 import lombok.Getter;
 
+/** ApiResponse 클래스는 API 응답의 기본 구조를 정의
+ * 성공 여부, 메시지, 데이터, 에러 코드 생성
+ * 성공 응답과 에러 응답을 생성하는 정적 메서드를 제공
+ * @param <T> 응답 데이터
+ * */
 @Getter
 @Builder
 public class ApiResponse<T> {
-
-    /* ApiResponse 클래스는 API 응답의 기본 구조를 정의한다.
-    * 성공 여부, 메시지, 데이터, 에러 코드 생성
-    * 성공 응답과 에러 응답을 생성하는 정적 메서드를 제공한다.
-    * */
 
     private Boolean success;
     private String message;

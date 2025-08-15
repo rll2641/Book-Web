@@ -31,7 +31,6 @@ public class User {
     private UserGrade userGrade;
 
     @Column(name = "USER_EMAIL", length = 30)
-    @Email(message = "유효한 이메일 형식이어야 합니다.")
     private String userEmail;
 
     @Column(name = "USER_PASSWORD", length = 30)

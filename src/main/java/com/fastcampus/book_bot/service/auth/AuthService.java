@@ -2,16 +2,12 @@ package com.fastcampus.book_bot.service.auth;
 
 import com.fastcampus.book_bot.common.utils.EncoderUtils;
 import com.fastcampus.book_bot.domain.user.User;
-import com.fastcampus.book_bot.domain.user.UserGrade;
 import com.fastcampus.book_bot.dto.user.SignupRequestDTO;
-import com.fastcampus.book_bot.repository.UserGradeRepository;
 import com.fastcampus.book_bot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -19,7 +15,6 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final UserGradeRepository userGradeRepository;
     private final EncoderUtils encoderUtils;
 
     /* 닉네임 중복 검증 */
@@ -71,15 +66,14 @@ public class AuthService {
                 throw new RuntimeException("비밀번호가 일치하지 않습니다.");
             }
 
-            User user = new User();
-            user = User.builder()
-                    .userEmail(request.getEmail())
-                    .userPassword(encoderUtils.passwordEncode(request.getPassword()))
-                    .userName(request.getName())
-                    .userNickname(request.getNickname())
-                    .userPhone(request.getPhone())
-                    .userStatus("ACTIVE")
-                    .build();
+            User user = User.builder()
+                        .userEmail(request.getEmail())
+                        .userPassword(encoderUtils.passwordEncode(request.getPassword()))
+                        .userName(request.getName())
+                        .userNickname(request.getNickname())
+                        .userPhone(request.getPhone())
+                        .userStatus("ACTIVE")
+                        .build();
 
             userRepository.save(user);
 
