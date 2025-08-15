@@ -1,50 +1,39 @@
 package com.fastcampus.book_bot.common.advice;
 
-import com.fastcampus.book_bot.common.response.ApiResponse;
-import jakarta.persistence.EntityNotFoundException;
-import org.springframework.http.HttpStatus;
+import com.fastcampus.book_bot.common.exception.BaseDomainException;
+import com.fastcampus.book_bot.common.response.ErrorApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.nio.file.AccessDeniedException;
-
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(
-                e.getMessage(), "SERVER_ERROR"
-        ));
-    }
+    /** 도메인 에러 핸들러
+     * @param ex 도메인 에러
+     * */
+    @ExceptionHandler(BaseDomainException.class)
+    public ResponseEntity<ErrorApiResponse> handleDomainException(BaseDomainException ex) {
+        log.warn("DOMAIN EXCEPTION OCCURRED: [{}] {} - {}",
+                ex.getDomain(), ex.getErrorCode(), ex.getMessage());
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(
-                e.getMessage(), "VALIDATION_FAILED"
-        ));
-    }
+        ErrorApiResponse response;
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(EntityNotFoundException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(
-                e.getMessage(), "NOT_FOUND"
-        ));
-    }
+        if (ex.getErrorDetail() != null) {
+            response = ErrorApiResponse.of(
+                    ex.getMessage(),
+                    ex.getErrorCode(),
+                    ex.getErrorDetail()
+            );
+        } else {
+            response = ErrorApiResponse.of(
+                    ex.getMessage(),
+                    ex.getErrorCode()
+            );
+        }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.error(
-                e.getMessage(), "ACCESS_DENIED"
-        ));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(
-                e.getMessage(), "SERVER_ERROR"
-        ));
+        return ResponseEntity.status(ex.getHttpStatus()).body(response);
     }
 }
