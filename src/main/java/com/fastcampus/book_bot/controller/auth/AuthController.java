@@ -1,7 +1,6 @@
 package com.fastcampus.book_bot.controller.auth;
 
 import com.fastcampus.book_bot.common.response.SuccessApiResponse;
-import com.fastcampus.book_bot.common.utils.JwtUtil;
 import com.fastcampus.book_bot.domain.user.User;
 import com.fastcampus.book_bot.dto.user.SignupRequestDTO;
 import com.fastcampus.book_bot.service.auth.AuthRedisService;
