@@ -24,7 +24,6 @@ public class AuthController {
     private final MailService mailService;
     private final AuthService authService;
     private final AuthRedisService authRedisService;
-    private final JwtUtil jwtUtil;
 
     /** 로그인
      * @param request SignupRequestDTO
