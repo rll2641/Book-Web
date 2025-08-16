@@ -377,7 +377,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // 로그인 처리 함수
   async function handleLogin(event) {
     event.preventDefault();
 
@@ -389,12 +388,11 @@
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>로그인 중...';
     submitBtn.disabled = true;
 
-    // 폼 데이터 수집 - AuthController의 login 메서드가 SignupRequestDTO를 받으므로 맞춤
+    // 폼 데이터 수집
     const formData = new FormData(form);
     const loginData = {
       email: formData.get('email'),
       password: formData.get('password')
-      // rememberMe는 SignupRequestDTO에 없으므로 제외
     };
 
     try {
@@ -403,12 +401,20 @@
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(loginData)
+        body: JSON.stringify(loginData),
+        credentials: 'include'  // 쿠키 포함해서 요청
       });
 
       const result = await response.json();
 
+      // SuccessApiResponse 구조: { success: true, message: "...", data: {...} }
       if (result.success) {
+        // Access Token을 메모리에 저장
+        window.accessToken = result.data.accessToken;
+
+        console.log('로그인 성공:', result.data.user);
+        console.log('Access Token 저장 완료');
+
         // 성공시 메시지 표시 후 리다이렉트
         showSuccess(result.message);
 
@@ -416,6 +422,7 @@
         setTimeout(() => {
           window.location.href = '/';
         }, 2000);
+
       } else {
         // 실패시 에러 메시지 표시
         showError(result.message || '로그인에 실패했습니다.');
@@ -433,53 +440,91 @@
     return false;
   }
 
-  // 메시지 표시 함수들
-  function showError(message) {
-    showMessage(message, 'danger');
+  // 로그아웃 함수
+  async function logout() {
+    try {
+      // 메모리에서 Access Token 가져오기
+      const accessToken = window.accessToken;
+
+      const response = await fetch('/api/member/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': accessToken ? `Bearer ${accessToken}` : ''
+        },
+        credentials: 'include'  // 쿠키 포함해서 요청
+      });
+
+      const result = await response.json();
+
+      // SuccessApiResponse 구조
+      if (result.success) {
+        // 메모리에서 Access Token 삭제
+        delete window.accessToken;
+
+        console.log('로그아웃 성공');
+        alert('로그아웃되었습니다.');
+
+        // 로그인 페이지로 이동
+        window.location.href = '/login';
+      } else {
+        console.error('로그아웃 실패:', result.message);
+      }
+
+    } catch (error) {
+      console.error('Logout error:', error);
+      // 에러가 발생해도 클라이언트 측 토큰은 삭제
+      delete window.accessToken;
+    }
   }
 
-  function showSuccess(message) {
-    showMessage(message, 'success');
-  }
+  // API 요청 시 Access Token 자동 포함하는 함수 (유틸리티)
+  async function apiRequest(url, options = {}) {
+    const accessToken = window.accessToken;
 
-  function showMessage(message, type) {
-    // 기존 동적 메시지 제거
-    const existingAlert = document.querySelector('#messageArea .alert:not([th\\:if])');
-    if (existingAlert) {
-      existingAlert.remove();
+    const defaultOptions = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+      },
+      credentials: 'include',
+      ...options
+    };
+
+    let response = await fetch(url, defaultOptions);
+
+    // Access Token이 만료된 경우 (401 에러)
+    if (response.status === 401 && accessToken) {
+      console.log('Access Token 만료, 갱신 시도...');
+
+      // Refresh Token으로 새 Access Token 요청
+      const refreshResponse = await fetch('/api/member/refresh', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (refreshResponse.ok) {
+        const refreshResult = await refreshResponse.json();
+        // SuccessApiResponse 구조: { success: true, data: { accessToken: "..." } }
+        if (refreshResult.success) {
+          // 새로운 Access Token 저장
+          window.accessToken = refreshResult.data.accessToken;
+
+          // 원래 요청을 새 토큰으로 재시도
+          defaultOptions.headers['Authorization'] = `Bearer ${refreshResult.data.accessToken}`;
+          response = await fetch(url, defaultOptions);
+        } else {
+          // Refresh Token도 만료된 경우 로그인 페이지로 이동
+          console.log('Refresh Token 만료, 재로그인 필요');
+          delete window.accessToken;
+          window.location.href = '/login';
+          return;
+        }
+      }
     }
 
-    // 새 메시지 생성
-    const messageArea = document.getElementById('messageArea');
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type}`;
-    alertDiv.innerHTML = `
-      <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
-      ${message}
-    `;
-
-    messageArea.appendChild(alertDiv);
-
-    // 상단으로 스크롤
-    messageArea.scrollIntoView({ behavior: 'smooth' });
+    return response;
   }
-
-  // 입력 필드 포커스 효과
-  document.querySelectorAll('.form-control').forEach(input => {
-    input.addEventListener('focus', function() {
-      const icon = this.parentElement.querySelector('i');
-      if (icon) {
-        icon.style.color = '#007bff';
-      }
-    });
-
-    input.addEventListener('blur', function() {
-      const icon = this.parentElement.querySelector('i');
-      if (icon) {
-        icon.style.color = '#6c757d';
-      }
-    });
-  });
 </script>
 </body>
 </html>
