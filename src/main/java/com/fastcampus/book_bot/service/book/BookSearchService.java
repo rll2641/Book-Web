@@ -1,6 +1,6 @@
 package com.fastcampus.book_bot.service.book;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.repository.BookRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,14 +26,14 @@ public class BookSearchService {
         try {
             switch (searchType) {
                 case "title":
-                    return bookRepository.findByBookTitleContaining(keyword, pageable);
+                    return bookRepository.findByBookNameContaining(keyword, pageable);
                 case "author":
                     return bookRepository.findByBookAuthorContaining(keyword, pageable);
                 case "publisher":
                     return bookRepository.findByBookPublisherContaining(keyword, pageable);
                 case "all":
                 default:
-                    return bookRepository.findByBookTitleContainingOrBookAuthorContainingOrBookPublisherContaining(keyword, keyword, keyword, pageable);
+                    return bookRepository.findByBookNameContainingOrBookAuthorContainingOrBookPublisherContaining(keyword, keyword, keyword, pageable);
             }
         } catch (Exception e) {
             log.warn("도서 검색 중 오류 발생! 조건: {}, 키워드 {}", searchType, keyword);
@@ -42,7 +42,7 @@ public class BookSearchService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Book> getBookById(Long bookId) {
+    public Optional<Book> getBookById(Integer bookId) {
         log.info("도서 상세 조회 - bookId: {}", bookId);
 
         try {

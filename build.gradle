@@ -24,16 +24,43 @@ repositories {
 }
 
 dependencies {
+    // Thymeleaf 템플릿 엔진
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // Spring MVC 웹 애플리케이션
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Data JPA (ORM)
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Spring WebFlux (비동기/리액티브 웹)
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // Bean Validation (입력값 검증)
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // 이메일 발송 기능
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    // Redis 데이터베이스 연동
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // 암호화 및 해싱 기능
+    implementation 'org.springframework.security:spring-security-crypto:5.7.2'
+    // 데이터베이스 마이그레이션 도구 (Flyway)
+    implementation 'org.flywaydb:flyway-core'
+    // MySQL용 Flyway 지원
+    implementation 'org.flywaydb:flyway-mysql'
+    // 컴파일 시 Lombok 사용 (코드 자동 생성)
     compileOnly 'org.projectlombok:lombok'
+    // MySQL JDBC 드라이버 (런타임)
     runtimeOnly 'com.mysql:mysql-connector-j'
+    // Lombok 애노테이션 프로세서
     annotationProcessor 'org.projectlombok:lombok'
+    // 테스트용 Spring Boot 스타터
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // JUnit 플랫폼 런처 (테스트 실행)
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // JWT 토큰 생성/파싱/검증 API
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    // JWT 구현체
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    // JWT JSON 처리(Jackson 연동)
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 }
 
 tasks.named('test') {

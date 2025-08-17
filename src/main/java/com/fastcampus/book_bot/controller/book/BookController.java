@@ -1,6 +1,6 @@
 package com.fastcampus.book_bot.controller.book;
 
-import com.fastcampus.book_bot.domain.Book;
+import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.dto.book.SearchDTO;
 import com.fastcampus.book_bot.service.book.BookSearchService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ public class BookController {
     }
 
     @GetMapping("/book/{bookId}")
-    public String bookDetail(@PathVariable Long bookId, Model model) {
+    public String bookDetail(@PathVariable Integer bookId, Model model) {
 
         Optional<Book> book = bookSearchService.getBookById(bookId);
         if (book.isPresent()) {
