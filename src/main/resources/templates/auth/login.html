@@ -377,6 +377,29 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // 성공 메시지 표시 함수
+  function showSuccess(message) {
+    const messageArea = document.getElementById('messageArea');
+    messageArea.innerHTML = `
+      <div class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+      </div>
+    `;
+  }
+
+  // 에러 메시지 표시 함수
+  function showError(message) {
+    const messageArea = document.getElementById('messageArea');
+    messageArea.innerHTML = `
+      <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        ${message}
+      </div>
+    `;
+  }
+
+  // 로그인 처리 함수
   async function handleLogin(event) {
     event.preventDefault();
 
@@ -395,6 +418,8 @@
       password: formData.get('password')
     };
 
+    console.log('로그인 시도:', loginData.email); // 디버깅
+
     try {
       const response = await fetch('/api/member/login', {
         method: 'POST',
@@ -405,31 +430,43 @@
         credentials: 'include'  // 쿠키 포함해서 요청
       });
 
+      console.log('응답 상태:', response.status); // 디버깅
+      console.log('응답 OK:', response.ok); // 디버깅
+
       const result = await response.json();
+      console.log('서버 응답 전체:', result); // 디버깅
+      console.log('result.success:', result.success); // 디버깅
+      console.log('result.success 타입:', typeof result.success); // 디버깅
 
       // SuccessApiResponse 구조: { success: true, message: "...", data: {...} }
-      if (result.success) {
+      if (response.ok && result.success === true) {
+        console.log('로그인 성공 조건 만족!'); // 디버깅
+
         // Access Token을 메모리에 저장
-        window.accessToken = result.data.accessToken;
+        if (result.data && result.data.accessToken) {
+          window.accessToken = result.data.accessToken;
+          console.log('Access Token 저장:', result.data.accessToken.substring(0, 20) + '...'); // 디버깅
+        }
 
-        console.log('로그인 성공:', result.data.user);
-        console.log('Access Token 저장 완료');
+        console.log('로그인 성공 사용자:', result.data.user); // 디버깅
 
-        // 성공시 메시지 표시 후 리다이렉트
-        showSuccess(result.message);
+        // 성공시 메시지 표시
+        showSuccess(result.message || '로그인에 성공했습니다!');
 
-        // 2초 후 메인 페이지로 이동
+        // 1초 후 메인 페이지로 이동
         setTimeout(() => {
+          console.log('페이지 이동 시작...'); // 디버깅
           window.location.href = '/';
-        }, 2000);
+        }, 1000);
 
       } else {
+        console.log('로그인 실패 - response.ok:', response.ok, 'result.success:', result.success); // 디버깅
         // 실패시 에러 메시지 표시
         showError(result.message || '로그인에 실패했습니다.');
       }
 
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', error); // 디버깅
       showError('로그인 중 오류가 발생했습니다.');
     } finally {
       // 로딩 상태 해제
@@ -525,6 +562,12 @@
 
     return response;
   }
+
+  // 페이지 로드 시 토큰 상태 확인 (선택사항)
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('페이지 로드됨');
+    // 필요한 경우 여기에 초기화 코드 추가
+  });
 </script>
 </body>
 </html>
