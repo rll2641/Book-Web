@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>주문하기</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .user-info {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 15px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    .grade-bronze { background: #cd7f32; color: white; }
+    .grade-silver { background: #c0c0c0; color: #333; }
+    .grade-gold { background: #ffd700; color: #333; }
+
+    .book-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .quantity-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .quantity-btn:hover {
+      background: #f0f0f0;
+    }
+
+    .quantity-input {
+      width: 50px;
+      text-align: center;
+      border: 1px solid #ddd;
+      padding: 5px;
+      border-radius: 4px;
+    }
+
+    .point-section {
+      background: #fff3cd;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .point-input {
+      width: 150px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+
+    .use-all-btn {
+      background: #ffc107;
+      color: #333;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .summary {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .final-amount {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #e74c3c;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+
+    .order-btn {
+      width: 100%;
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 15px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .order-btn:hover {
+      background: #0056b3;
+    }
+
+    .discount-text {
+      color: #28a745;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📚 주문하기</h1>
+
+  <!-- 사용자 정보 -->
+  <div class="user-info">
+    <span><strong id="userName">김독서</strong>님</span>
+    <span class="grade-badge grade-silver" id="userGrade">SILVER</span>
+    <div style="margin-top: 10px;">
+      보유 포인트: <strong id="userPoints">15,000</strong>P
+    </div>
+  </div>
+
+  <!-- 주문 도서 목록 -->
+  <h3>주문 도서</h3>
+  <div id="bookList">
+    <div class="book-item" data-book-id="1" data-price="25000">
+      <div>
+        <strong>스프링 부트 완벽 가이드</strong><br>
+        <span style="color: #666;">25,000원</span>
+      </div>
+      <div class="quantity-control">
+        <button class="quantity-btn" onclick="changeQuantity(1, -1)">-</button>
+        <input type="number" value="1" min="1" class="quantity-input" onchange="updateQuantity(1, this.value)">
+        <button class="quantity-btn" onclick="changeQuantity(1, 1)">+</button>
+      </div>
+    </div>
+
+    <div class="book-item" data-book-id="2" data-price="18000">
+      <div>
+        <strong>자바 디자인 패턴</strong><br>
+        <span style="color: #666;">18,000원</span>
+      </div>
+      <div class="quantity-control">
+        <button class="quantity-btn" onclick="changeQuantity(2, -1)">-</button>
+        <input type="number" value="2" min="1" class="quantity-input" onchange="updateQuantity(2, this.value)">
+        <button class="quantity-btn" onclick="changeQuantity(2, 1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 포인트 사용 -->
+  <div class="point-section">
+    <h4>포인트 사용</h4>
+    <input type="number" id="pointToUse" class="point-input" placeholder="사용할 포인트" onchange="calculateTotal()">
+    <button class="use-all-btn" onclick="useAllPoints()">전액 사용</button>
+  </div>
+
+  <!-- 주문 요약 -->
+  <div class="summary">
+    <h4>주문 요약</h4>
+    <div class="summary-row">
+      <span>상품 금액</span>
+      <span id="originalAmount">61,000원</span>
+    </div>
+    <div class="summary-row">
+      <span>등급 할인 (3%)</span>
+      <span id="gradeDiscount" class="discount-text">-1,830원</span>
+    </div>
+    <div class="summary-row">
+      <span>포인트 사용</span>
+      <span id="pointDiscount">0원</span>
+    </div>
+    <div class="summary-row">
+      <span>배송비</span>
+      <span id="shippingCost">3,000원</span>
+    </div>
+    <div class="summary-row final-amount">
+      <span>최종 결제 금액</span>
+      <span id="finalAmount">62,170원</span>
+    </div>
+    <div style="margin-top: 10px; color: #6c757d;">
+      적립 예정 마일리지: <span id="earnMileage">1,775</span>P
+    </div>
+  </div>
+
+  <button class="order-btn" onclick="placeOrder()">주문하기</button>
+</div>
+
+<script>
+  // 사용자 데이터 (실제로는 서버에서 받아올 데이터)
+  const userData = {
+    name: "김독서",
+    grade: "SILVER",
+    points: 15000
+  };
+
+  // 전략패턴에 따른 등급별 혜택
+  const gradeStrategies = {
+    BRONZE: { discount: 0, mileage: 0, freeShipping: false },
+    SILVER: { discount: 0.03, mileage: 0.03, freeShipping: false },
+    GOLD: { discount: 0.05, mileage: 0.05, freeShipping: true }
+  };
+
+  // 수량 변경
+  function changeQuantity(bookId, change) {
+    const input = document.querySelector(`[data-book-id="${bookId}"] .quantity-input`);
+    const newValue = Math.max(1, parseInt(input.value) + change);
+    input.value = newValue;
+    calculateTotal();
+  }
+
+  function updateQuantity(bookId, quantity) {
+    calculateTotal();
+  }
+
+  // 전액 포인트 사용
+  function useAllPoints() {
+    const pointInput = document.getElementById('pointToUse');
+    const finalAmount = calculateOriginalAmount() * (1 - gradeStrategies[userData.grade].discount) + (gradeStrategies[userData.grade].freeShipping ? 0 : 3000);
+    const maxUsablePoints = Math.min(userData.points, Math.floor(finalAmount));
+    pointInput.value = maxUsablePoints;
+    calculateTotal();
+  }
+
+  // 원본 금액 계산
+  function calculateOriginalAmount() {
+    let total = 0;
+    document.querySelectorAll('.book-item').forEach(item => {
+      const price = parseInt(item.dataset.price);
+      const quantity = parseInt(item.querySelector('.quantity-input').value);
+      total += price * quantity;
+    });
+    return total;
+  }
+
+  // 총액 계산
+  function calculateTotal() {
+    const strategy = gradeStrategies[userData.grade];
+    const originalAmount = calculateOriginalAmount();
+    const gradeDiscount = Math.floor(originalAmount * strategy.discount);
+    const pointToUse = Math.min(parseInt(document.getElementById('pointToUse').value) || 0, userData.points);
+    const shippingCost = strategy.freeShipping ? 0 : 3000;
+
+    const afterGradeDiscount = originalAmount - gradeDiscount;
+    const finalAmount = Math.max(0, afterGradeDiscount - pointToUse + shippingCost);
+    const earnMileage = Math.floor(originalAmount * strategy.mileage);
+
+    // UI 업데이트
+    document.getElementById('originalAmount').textContent = originalAmount.toLocaleString() + '원';
+    document.getElementById('gradeDiscount').textContent = '-' + gradeDiscount.toLocaleString() + '원';
+    document.getElementById('pointDiscount').textContent = '-' + pointToUse.toLocaleString() + '원';
+    document.getElementById('shippingCost').textContent = shippingCost.toLocaleString() + '원';
+    document.getElementById('finalAmount').textContent = finalAmount.toLocaleString() + '원';
+    document.getElementById('earnMileage').textContent = earnMileage.toLocaleString();
+  }
+
+  function placeOrder() {
+    alert('주문이 완료되었습니다!');
+  }
+
+  // 초기 계산
+  calculateTotal();
+</script>
+</body>
+</html>

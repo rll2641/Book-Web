@@ -99,6 +99,24 @@
       min-width: 150px;
     }
 
+    /* 주문 버튼 특별 스타일 */
+    .btn-order {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .btn-order:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+      color: white;
+    }
+
     .breadcrumb-custom {
       background-color: transparent;
       padding: 0;
@@ -196,8 +214,7 @@
       <!-- 도서 정보 -->
       <div class="col-lg-8 col-md-7">
         <!-- 제목 및 기본 정보 -->
-        <h1 class="book-title" th:text="${book.bookName
-        }">도서 제목</h1>
+        <h1 class="book-title" th:text="${book.bookName}">도서 제목</h1>
 
         <p class="book-author" th:if="${book.bookAuthor}">
           <i class="fas fa-user me-2"></i>
@@ -241,11 +258,25 @@
 
         <!-- 액션 버튼들 -->
         <div class="action-buttons">
+          <!-- 주문하기 폼 (POST 방식) - 수정된 부분 -->
+          <form action="/order" method="post" style="display: inline-block;">
+            <!-- name 속성이 OrderForm의 필드명과 일치해야 함 -->
+            <input type="hidden" name="bookId" th:value="${book.bookId}">
+            <input type="hidden" name="bookName" th:value="${book.bookName}">
+            <input type="hidden" name="bookAuthor" th:value="${book.bookAuthor}">
+            <input type="hidden" name="bookPublisher" th:value="${book.bookPublisher}">
+            <input type="hidden" name="price" th:value="${book.bookDiscount}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn btn-order btn-lg">
+              <i class="fas fa-shopping-cart me-2"></i>주문하기
+            </button>
+          </form>
+
           <a th:href="${book.bookLink}"
              target="_blank"
              class="btn btn-primary btn-lg"
              th:if="${book.bookLink}">
-            <i class="fas fa-shopping-cart me-2"></i>구매하기
+            <i class="fas fa-external-link-alt me-2"></i>구매하기
           </a>
 
           <button class="btn btn-outline-secondary btn-lg" onclick="addToWishlist()">
@@ -346,3 +377,4 @@
 </script>
 </body>
 </html>
+
