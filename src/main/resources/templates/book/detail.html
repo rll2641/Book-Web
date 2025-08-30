@@ -260,7 +260,6 @@
         <div class="action-buttons">
           <!-- 주문하기 폼 (POST 방식) - 수정된 부분 -->
           <form action="/order" method="post" style="display: inline-block;">
-            <!-- name 속성이 OrderForm의 필드명과 일치해야 함 -->
             <input type="hidden" name="bookId" th:value="${book.bookId}">
             <input type="hidden" name="bookName" th:value="${book.bookName}">
             <input type="hidden" name="bookAuthor" th:value="${book.bookAuthor}">
