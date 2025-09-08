@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로그인 - 온라인 서점</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .navbar-brand {
+      font-weight: bold;
+      color: #2c3e50 !important;
+    }
+
+    .login-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 20px 0;
+    }
+
+    .login-container {
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .login-left {
+      background: linear-gradient(45deg, #2c3e50, #3498db);
+      color: white;
+      padding: 60px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .login-left h2 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .login-left p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    .login-left .book-icon {
+      font-size: 4rem;
+      margin-bottom: 30px;
+      opacity: 0.8;
+    }
+
+    .login-right {
+      padding: 60px 40px;
+    }
+
+    .login-form-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .login-form-subtitle {
+      color: #6c757d;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+
+    .form-control {
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .form-control:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .input-icon {
+      position: relative;
+    }
+
+    .input-icon i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6c757d;
+      z-index: 10;
+    }
+
+    .input-icon .form-control {
+      padding-left: 45px;
+    }
+
+    .btn-login {
+      background: linear-gradient(45deg, #007bff, #0056b3);
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+      width: 100%;
+      transition: all 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .btn-login:hover {
+      background: linear-gradient(45deg, #0056b3, #004085);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-google {
+      background-color: #ffffff;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #495057;
+      width: 100%;
+      transition: all 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .btn-google:hover {
+      background-color: #f8f9fa;
+      border-color: #dee2e6;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .google-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+    }
+
+    .divider {
+      text-align: center;
+      margin: 30px 0;
+      position: relative;
+    }
+
+    .divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background-color: #dee2e6;
+    }
+
+    .divider span {
+      background-color: white;
+      color: #6c757d;
+      padding: 0 20px;
+      font-size: 0.9rem;
+    }
+
+    .form-check {
+      margin-bottom: 25px;
+    }
+
+    .form-check-input:checked {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .forgot-password {
+      color: #007bff;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .forgot-password:hover {
+      text-decoration: underline;
+    }
+
+    .signup-link {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #dee2e6;
+    }
+
+    .signup-link a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .signup-link a:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 768px) {
+      .login-container {
+        margin: 20px;
+      }
+
+      .login-left {
+        padding: 40px 20px;
+      }
+
+      .login-left h2 {
+        font-size: 2rem;
+      }
+
+      .login-left .book-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+      }
+
+      .login-right {
+        padding: 40px 20px;
+      }
+
+      .login-form-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<div th:replace="~{common/navigation :: navigation}"></div>
+
+<div class="login-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12">
+        <div class="login-container mx-auto">
+          <div class="row g-0">
+            <!-- 왼쪽 브랜딩 영역 -->
+            <div class="col-lg-6 d-none d-lg-block">
+              <div class="login-left">
+                <div class="book-icon">
+                  <i class="fas fa-book-open"></i>
+                </div>
+                <h2>온라인 서점</h2>
+                <p>수백만 권의 도서와 함께<br>
+                  새로운 지식의 여행을 시작하세요</p>
+                <div class="mt-4">
+                  <i class="fas fa-star me-1"></i>
+                  <i class="fas fa-star me-1"></i>
+                  <i class="fas fa-star me-1"></i>
+                  <i class="fas fa-star me-1"></i>
+                  <i class="fas fa-star"></i>
+                  <small class="ms-2">10만+ 사용자가 선택한 서점</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- 오른쪽 로그인 폼 -->
+            <div class="col-lg-6">
+              <div class="login-right">
+                <h1 class="login-form-title">로그인</h1>
+                <p class="login-form-subtitle">계정에 로그인하여 더 많은 서비스를 이용하세요</p>
+
+                <!-- 에러/성공 메시지 영역 -->
+                <div id="messageArea">
+                  <!-- 서버에서 전달되는 에러/성공 메시지 -->
+                  <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${errorMessage}">로그인에 실패했습니다.</span>
+                  </div>
+
+                  <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${successMessage}">성공적으로 처리되었습니다.</span>
+                  </div>
+                </div>
+
+                <!-- 로그인 폼 -->
+                <form id="loginForm" onsubmit="return handleLogin(event)">
+                  <!-- 이메일 -->
+                  <div class="form-group">
+                    <label for="email" class="form-label">이메일</label>
+                    <div class="input-icon">
+                      <i class="fas fa-envelope"></i>
+                      <input type="email"
+                             class="form-control"
+                             id="email"
+                             name="email"
+                             placeholder="이메일을 입력하세요"
+                             required>
+                    </div>
+                  </div>
+
+                  <!-- 비밀번호 -->
+                  <div class="form-group">
+                    <label for="password" class="form-label">비밀번호</label>
+                    <div class="input-icon">
+                      <i class="fas fa-lock"></i>
+                      <input type="password"
+                             class="form-control"
+                             id="password"
+                             name="password"
+                             placeholder="비밀번호를 입력하세요"
+                             required>
+                    </div>
+                  </div>
+
+                  <!-- 로그인 유지 & 비밀번호 찾기 -->
+                  <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="rememberMe" id="rememberMe">
+                      <label class="form-check-label" for="rememberMe">
+                        로그인 유지
+                      </label>
+                    </div>
+                    <a href="/forgot-password" class="forgot-password">비밀번호를 잊으셨나요?</a>
+                  </div>
+
+                  <!-- 로그인 버튼 -->
+                  <button type="submit" class="btn btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i>로그인
+                  </button>
+                </form>
+
+                <!-- 구분선 -->
+                <div class="divider">
+                  <span>또는</span>
+                </div>
+
+                <!-- 구글 로그인 -->
+                <a href="/oauth/google/login" class="btn btn-google">
+                  <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="google-icon">
+                  Google로 로그인
+                </a>
+
+                <!-- 회원가입 링크 -->
+                <div class="signup-link">
+                  <span class="text-muted">아직 계정이 없으신가요? </span>
+                  <a href="/signup">회원가입</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // 성공 메시지 표시 함수
+  function showSuccess(message) {
+    const messageArea = document.getElementById('messageArea');
+    messageArea.innerHTML = `
+      <div class="alert alert-success" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        ${message}
+      </div>
+    `;
+  }
+
+  // 에러 메시지 표시 함수
+  function showError(message) {
+    const messageArea = document.getElementById('messageArea');
+    messageArea.innerHTML = `
+      <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        ${message}
+      </div>
+    `;
+  }
+
+  // 수정된 로그인 처리 함수 (sessionStorage 사용)
+  async function handleLogin(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.querySelector('.btn-login');
+    const originalText = submitBtn.innerHTML;
+
+    // 로딩 상태
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>로그인 중...';
+    submitBtn.disabled = true;
+
+    // 폼 데이터 수집
+    const formData = new FormData(form);
+    const loginData = {
+      email: formData.get('email'),
+      password: formData.get('password')
+    };
+
+    console.log('로그인 시도:', loginData.email);
+
+    try {
+      const response = await fetch('/api/member/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+      console.log('서버 응답:', result);
+
+      if (response.ok && result.success === true) {
+        console.log('로그인 성공!');
+
+        // 1. Access Token과 사용자 정보를 sessionStorage와 메모리에 저장
+        if (result.data && result.data.accessToken) {
+          sessionStorage.setItem('accessToken', result.data.accessToken);
+          window.accessToken = result.data.accessToken;
+          console.log('Access Token sessionStorage에 저장됨');
+        }
+
+        if (result.data && result.data.user) {
+          sessionStorage.setItem('userData', JSON.stringify(result.data.user));
+          window.userData = result.data.user;
+          console.log('사용자 정보 sessionStorage에 저장됨:', result.data.user);
+        }
+
+        // 2. 성공 메시지 표시
+        showSuccess(result.message || '로그인에 성공했습니다!');
+
+        // 3. 현재 페이지의 네비게이션 바 업데이트 (있다면)
+        if (typeof window.updateAuthStatus === 'function') {
+          window.updateAuthStatus();
+        }
+
+        // 4. 1초 후 메인 페이지로 이동
+        setTimeout(() => {
+          console.log('메인 페이지로 이동...');
+          window.location.href = '/';
+        }, 1000);
+
+      } else {
+        console.log('로그인 실패:', result.message);
+        showError(result.message || '로그인에 실패했습니다.');
+      }
+
+    } catch (error) {
+      console.error('Login error:', error);
+      showError('로그인 중 오류가 발생했습니다.');
+    } finally {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+
+    return false;
+  }
+
+  // 페이지 로드 시 토큰 상태 확인
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('로그인 페이지 로드됨');
+
+    // 이미 로그인되어 있다면 메인 페이지로 리다이렉트
+    const accessToken = sessionStorage.getItem('accessToken');
+    if (accessToken) {
+      console.log('이미 로그인된 상태, 메인 페이지로 이동');
+      window.location.href = '/';
+    }
+  });
+</script>
+</body>
+</html>
