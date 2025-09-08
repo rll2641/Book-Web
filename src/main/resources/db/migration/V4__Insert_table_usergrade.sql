@@ -1,0 +1,6 @@
+INSERT INTO `user_grade` (`GRADE_NAME`, `MIN_USAGE`, `ORDER_COUNT`, `DISCOUNT`, `MILEAGE_RATE`)
+VALUES
+    ('BRONZE', 100, 1, 0, 0),
+    ('SILVER', 100000, 3, 0.03, 0.03),
+    ('GOLD', 300000, 5, 0.05, 0.05),
+    ('PLATINUM', 500000, 10, 0.08, 0.08);
