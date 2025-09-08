@@ -38,7 +38,7 @@ public class AuthRedisService {
 
             Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
             refreshCookie.setHttpOnly(true);  // XSS 공격 방지
-            refreshCookie.setSecure(true);    // HTTPS에서만 전송 (운영환경)
+            refreshCookie.setSecure(false);    // HTTP에서만 전송
             refreshCookie.setPath("/");       // 모든 경로에서 접근 가능
             refreshCookie.setMaxAge(7 * 24 * 60 * 60);
 

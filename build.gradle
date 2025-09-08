@@ -55,6 +55,8 @@ dependencies {
     // JUnit 플랫폼 런처 (테스트 실행)
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.108.Final:osx-aarch_64'
+
     // JWT 토큰 생성/파싱/검증 API
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     // JWT 구현체

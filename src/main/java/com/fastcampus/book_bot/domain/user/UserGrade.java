@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -37,10 +38,10 @@ public class UserGrade {
     private Integer orderCount;
 
     @Column(name = "DISCOUNT")
-    private Float discount;
+    private BigDecimal discount;
 
     @Column(name = "MILEAGE_RATE")
-    private Float mileageRate;
+    private BigDecimal mileageRate;
 
     @CreatedDate
     @Column(name = "CREATED_AT", nullable = false, updatable = false)

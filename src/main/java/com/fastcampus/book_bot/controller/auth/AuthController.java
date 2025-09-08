@@ -3,6 +3,7 @@ package com.fastcampus.book_bot.controller.auth;
 import com.fastcampus.book_bot.common.response.SuccessApiResponse;
 import com.fastcampus.book_bot.domain.user.User;
 import com.fastcampus.book_bot.dto.user.SignupRequestDTO;
+import com.fastcampus.book_bot.dto.user.UserDTO;
 import com.fastcampus.book_bot.service.auth.AuthRedisService;
 import com.fastcampus.book_bot.service.auth.AuthService;
 import com.fastcampus.book_bot.service.auth.MailService;
@@ -34,14 +35,11 @@ public class AuthController {
         User user = authService.login(request);
         String accessToken = authRedisService.setTokenUser(user, response);
 
+        UserDTO userDTO = new UserDTO(user);
+
         Map<String, Object> data = new HashMap<>();
         data.put("accessToken", accessToken);
-        data.put("user", Map.of(
-                "userId", user.getUserId(),
-                "email", user.getUserEmail(),
-                "nickname", user.getUserNickname(),
-                "name", user.getUserName()
-        ));
+        data.put("user", userDTO);
 
         return ResponseEntity.ok(SuccessApiResponse.of("로그인 완료!", data));
     }
