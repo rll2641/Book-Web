@@ -99,7 +99,6 @@
       min-width: 150px;
     }
 
-    /* 주문 버튼 특별 스타일 */
     .btn-order {
       background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
       border: none;
@@ -115,6 +114,12 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
       color: white;
+    }
+
+    .btn-order:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
     }
 
     .breadcrumb-custom {
@@ -161,6 +166,14 @@
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       margin-top: 30px;
+    }
+
+    .loading {
+      display: none;
+    }
+
+    .loading.show {
+      display: inline-block;
     }
 
     @media (max-width: 768px) {
@@ -258,18 +271,15 @@
 
         <!-- 액션 버튼들 -->
         <div class="action-buttons">
-          <!-- 주문하기 폼 (POST 방식) - 수정된 부분 -->
-          <form action="/order" method="post" style="display: inline-block;">
-            <input type="hidden" name="bookId" th:value="${book.bookId}">
-            <input type="hidden" name="bookName" th:value="${book.bookName}">
-            <input type="hidden" name="bookAuthor" th:value="${book.bookAuthor}">
-            <input type="hidden" name="bookPublisher" th:value="${book.bookPublisher}">
-            <input type="hidden" name="price" th:value="${book.bookDiscount}">
-            <input type="hidden" name="quantity" value="1">
-            <button type="submit" class="btn btn-order btn-lg">
+          <!-- JWT 인증을 사용하는 주문 버튼 -->
+          <button type="button" class="btn btn-order btn-lg" onclick="orderBook()" id="orderBtn">
+            <span class="loading" id="orderLoading">
+              <i class="fas fa-spinner fa-spin me-2"></i>처리중...
+            </span>
+            <span id="orderText">
               <i class="fas fa-shopping-cart me-2"></i>주문하기
-            </button>
-          </form>
+            </span>
+          </button>
 
           <a th:href="${book.bookLink}"
              target="_blank"
@@ -299,14 +309,13 @@
       </div>
     </div>
 
-    <!-- 관련 도서 섹션 (선택사항) -->
+    <!-- 관련 도서 섹션 -->
     <div class="row">
       <div class="col-12">
         <div class="related-section">
           <h4><i class="fas fa-books me-2"></i>이런 도서는 어떠세요?</h4>
           <p class="text-muted">같은 저자 또는 유사한 카테고리의 도서들을 추천드립니다.</p>
 
-          <!-- 관련 도서 추천 버튼들 -->
           <div class="mt-3">
             <a th:href="'/search?searchType=author&keyword=' + ${book.bookAuthor}"
                class="btn btn-outline-primary me-2"
@@ -332,8 +341,167 @@
   </button>
 </div>
 
+<!-- 숨겨진 데이터 (JavaScript에서 사용) -->
+<div style="display: none;">
+  <input type="hidden" id="bookId" th:value="${book.bookId}">
+  <input type="hidden" id="bookName" th:value="${book.bookName}">
+  <input type="hidden" id="bookAuthor" th:value="${book.bookAuthor}">
+  <input type="hidden" id="bookPublisher" th:value="${book.bookPublisher}">
+  <input type="hidden" id="bookPrice" th:value="${book.bookDiscount}">
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // JWT 인증을 사용하는 주문 함수
+  // 주문 페이지로 이동하는 함수 (detail.html용)
+  async function orderBook() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = document.getElementById('orderText');
+    const orderLoading = document.getElementById('orderLoading');
+
+    // 버튼 비활성화 및 로딩 표시
+    orderBtn.disabled = true;
+    orderText.style.display = 'none';
+    orderLoading.classList.add('show');
+
+    try {
+      // sessionStorage에서 Access Token 확인
+      const accessToken = sessionStorage.getItem('accessToken');
+
+      if (!accessToken) {
+        alert('로그인이 필요합니다.');
+        window.location.href = '/login';
+        return;
+      }
+
+      // 주문 데이터 수집
+      const orderData = {
+        bookId: document.getElementById('bookId').value.trim(),
+        bookName: document.getElementById('bookName').value.trim(),
+        bookAuthor: document.getElementById('bookAuthor').value.trim(),
+        bookPublisher: document.getElementById('bookPublisher').value.trim(),
+        price: parseInt(document.getElementById('bookPrice').value) || 0,
+        quantity: 1
+      };
+
+      console.log('주문 데이터:', orderData);
+
+      // FormData 생성 (Thymeleaf 컨트롤러로 전송)
+      const formData = new FormData();
+      formData.append('bookId', orderData.bookId);
+      formData.append('bookName', orderData.bookName);
+      formData.append('bookAuthor', orderData.bookAuthor);
+      formData.append('bookPublisher', orderData.bookPublisher);
+      formData.append('price', orderData.price);
+      formData.append('quantity', orderData.quantity);
+
+      // /order로 POST 요청 (주문 페이지로 이동)
+      const response = await fetch('/order', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+
+      console.log('응답 상태:', response.status);
+
+      if (response.ok) {
+        // HTML 응답을 받아서 새 페이지로 이동
+        const htmlContent = await response.text();
+        document.open();
+        document.write(htmlContent);
+        document.close();
+
+        // 또는 더 간단하게 리다이렉트
+        // window.location.href = '/order?' + new URLSearchParams(orderData).toString();
+      } else if (response.status === 401) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          orderBook(); // 재시도
+          return;
+        } else {
+          alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/login';
+        }
+      } else {
+        alert('주문 페이지로 이동하는 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('주문 페이지 이동 오류:', error);
+      alert('주문 페이지로 이동하는 중 오류가 발생했습니다: ' + error.message);
+    } finally {
+      // 버튼 상태 복원
+      orderBtn.disabled = false;
+      orderText.style.display = 'inline';
+      orderLoading.classList.remove('show');
+    }
+  }
+
+  // 또는 더 간단한 방법: form을 동적으로 생성해서 제출
+  function orderBookSimple() {
+    const accessToken = sessionStorage.getItem('accessToken');
+
+    if (!accessToken) {
+      alert('로그인이 필요합니다.');
+      window.location.href = '/login';
+      return;
+    }
+
+    // 동적 form 생성
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/order';
+
+    // 주문 데이터 추가
+    const fields = [
+      { name: 'bookId', value: document.getElementById('bookId').value },
+      { name: 'bookName', value: document.getElementById('bookName').value },
+      { name: 'bookAuthor', value: document.getElementById('bookAuthor').value },
+      { name: 'bookPublisher', value: document.getElementById('bookPublisher').value },
+      { name: 'price', value: document.getElementById('bookPrice').value },
+      { name: 'quantity', value: '1' }
+    ];
+
+    fields.forEach(field => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = field.name;
+      input.value = field.value || '';
+      form.appendChild(input);
+    });
+
+    // form을 DOM에 추가하고 제출
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  // 개선된 토큰 갱신 함수
+  async function refreshAccessToken() {
+    try {
+      console.log('토큰 갱신 요청 시작...');
+      const response = await fetch('/auth/refresh', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      console.log('토큰 갱신 응답 상태:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('새 토큰 받음:', !!data.accessToken);
+        sessionStorage.setItem('accessToken', data.accessToken);
+        return true;
+      } else {
+        console.log('토큰 갱신 실패');
+        return false;
+      }
+    } catch (error) {
+      console.error('토큰 갱신 오류:', error);
+      return false;
+    }
+  }
+
   function goBack() {
     if (document.referrer && document.referrer.includes('/search')) {
       history.back();
@@ -376,4 +544,3 @@
 </script>
 </body>
 </html>
-

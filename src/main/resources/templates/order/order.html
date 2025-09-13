@@ -62,6 +62,10 @@
       background: linear-gradient(135deg, #ffd700, #ffed4e);
       color: #333;
     }
+    .grade-platinum {
+      background: linear-gradient(135deg, #e5e4e2, #bcc6cc);
+      color: #333;
+    }
 
     .points-info {
       margin-top: 12px;
@@ -81,13 +85,6 @@
       padding: 20px;
       margin-bottom: 15px;
       background: #f8f9fa;
-      transition: all 0.3s ease;
-    }
-
-    .book-item:hover {
-      border-color: #007bff;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,123,255,0.1);
     }
 
     .book-info {
@@ -116,69 +113,10 @@
       color: #e74c3c;
     }
 
-    .quantity-control {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .quantity-btn {
-      width: 35px;
-      height: 35px;
-      border: 2px solid #007bff;
-      background: white;
+    .quantity-display {
+      font-size: 1.2em;
+      font-weight: bold;
       color: #007bff;
-      cursor: pointer;
-      border-radius: 6px;
-      font-weight: bold;
-      transition: all 0.2s ease;
-    }
-
-    .quantity-btn:hover {
-      background: #007bff;
-      color: white;
-    }
-
-    .quantity-input {
-      width: 60px;
-      text-align: center;
-      border: 2px solid #e9ecef;
-      padding: 8px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    .point-section {
-      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-      padding: 20px;
-      border-radius: 10px;
-      margin: 30px 0;
-      border: 1px solid #ffc107;
-    }
-
-    .point-input {
-      width: 180px;
-      padding: 10px;
-      border: 2px solid #ffc107;
-      border-radius: 6px;
-      margin-right: 15px;
-    }
-
-    .use-all-btn {
-      background: linear-gradient(135deg, #ffc107, #ffb300);
-      color: #333;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-
-    .use-all-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
     }
 
     .summary {
@@ -230,6 +168,13 @@
       box-shadow: 0 6px 25px rgba(40, 167, 69, 0.4);
     }
 
+    .order-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
     .back-btn {
       background: #6c757d;
       color: white;
@@ -254,20 +199,105 @@
       border-left: 4px solid #007bff;
     }
 
+    /* 로딩 스피너 */
+    .loading-spinner {
+      display: none;
+      margin-left: 10px;
+    }
+
+    .loading-spinner.show {
+      display: inline-block;
+    }
+
+    /* 팝업 모달 스타일 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      min-width: 300px;
+      max-width: 500px;
+    }
+
+    .modal-icon {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .modal-icon.success {
+      color: #28a745;
+    }
+
+    .modal-icon.error {
+      color: #dc3545;
+    }
+
+    .modal-title {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .modal-message {
+      font-size: 1.1em;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .modal-btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 0 10px;
+      transition: all 0.3s ease;
+    }
+
+    .modal-btn.primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .modal-btn.primary:hover {
+      background: #0056b3;
+    }
+
+    .modal-btn.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .modal-btn.secondary:hover {
+      background: #545b62;
+    }
+
     @media (max-width: 768px) {
       .book-info {
         flex-direction: column;
         align-items: flex-start;
       }
 
-      .quantity-control {
-        justify-content: center;
-        width: 100%;
-      }
-
-      .point-input {
-        width: 100%;
-        margin-bottom: 10px;
+      .modal-content {
+        margin: 20px;
+        min-width: auto;
       }
     }
   </style>
@@ -286,12 +316,12 @@
   <!-- 사용자 정보 -->
   <div class="user-info">
     <div class="user-name">
-      <span id="userName">로딩중...</span>님
-      <span class="grade-badge grade-bronze" id="userGrade">BRONZE</span>
+      <span th:text="${currentUser.userName}">사용자</span>님
+      <span class="grade-badge" th:classappend="'grade-' + ${userGrade.gradeName.toLowerCase()}" th:text="${userGrade.gradeName}">BRONZE</span>
     </div>
     <div class="points-info">
       <i class="fas fa-coins me-2"></i>
-      보유 포인트: <strong id="userPoints">0</strong>P
+      보유 포인트: <strong th:text="${#numbers.formatInteger(userPoints, 0, 'COMMA')}">0</strong>P
     </div>
   </div>
 
@@ -301,7 +331,7 @@
   </h3>
 
   <div id="bookList">
-    <div class="book-item" th:data-book-id="${orderForm.bookId}" th:data-price="${orderForm.price}">
+    <div class="book-item">
       <div class="book-info">
         <div class="book-details">
           <h5 th:text="${orderForm.bookName}">책 제목</h5>
@@ -318,34 +348,11 @@
           </div>
         </div>
 
-        <div class="quantity-control">
-          <button class="quantity-btn" th:onclick="'changeQuantity(' + ${orderForm.bookId} + ', -1)'">-</button>
-          <input type="number"
-                 th:value="${orderForm.quantity}"
-                 min="1"
-                 class="quantity-input"
-                 th:onchange="'updateQuantity(' + ${orderForm.bookId} + ', this.value)'">
-          <button class="quantity-btn" th:onclick="'changeQuantity(' + ${orderForm.bookId} + ', 1)'">+</button>
+        <div class="quantity-display">
+          수량: <span th:text="${orderForm.quantity}">1</span>권
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- 포인트 사용 -->
-  <div class="point-section">
-    <h4><i class="fas fa-coins me-2"></i>포인트 사용</h4>
-    <div class="mt-3">
-      <input type="number"
-             id="pointToUse"
-             class="point-input"
-             placeholder="사용할 포인트"
-             onchange="calculateTotal()"
-             min="0">
-      <button class="use-all-btn" onclick="useAllPoints()">
-        <i class="fas fa-star me-2"></i>전액 사용
-      </button>
-    </div>
-    <small class="text-muted">※ 보유 포인트 내에서만 사용 가능합니다</small>
   </div>
 
   <!-- 주문 요약 -->
@@ -355,198 +362,178 @@
     </h4>
     <div class="summary-row">
       <span><i class="fas fa-tag me-2"></i>상품 금액</span>
-      <span id="originalAmount">0원</span>
+      <span th:text="${#numbers.formatInteger(calculationResult.originalAmount, 0, 'COMMA')} + '원'">0원</span>
     </div>
     <div class="summary-row">
       <span><i class="fas fa-percentage me-2"></i>등급 할인</span>
-      <span id="gradeDiscount" class="discount-text">0원</span>
+      <span class="discount-text" th:text="${calculationResult.gradeDiscountAmount > 0 ? '-' + #numbers.formatInteger(calculationResult.gradeDiscountAmount, 0, 'COMMA') + '원' : '할인 없음'}">0원</span>
     </div>
     <div class="summary-row">
       <span><i class="fas fa-coins me-2"></i>포인트 사용</span>
-      <span id="pointDiscount" class="discount-text">0원</span>
+      <span class="discount-text" th:text="${calculationResult.usedPoints > 0 ? '-' + #numbers.formatInteger(calculationResult.usedPoints, 0, 'COMMA') + '원' : '0원'}">0원</span>
     </div>
     <div class="summary-row">
       <span><i class="fas fa-truck me-2"></i>배송비</span>
-      <span id="shippingCost">3,000원</span>
+      <span th:text="${calculationResult.shippingCost == 0 ? '무료배송' : #numbers.formatInteger(calculationResult.shippingCost, 0, 'COMMA') + '원'}">3,000원</span>
     </div>
     <div class="summary-row total">
       <span><i class="fas fa-calculator me-2"></i>최종 결제 금액</span>
-      <span id="finalAmount">0원</span>
+      <span th:text="${#numbers.formatInteger(calculationResult.finalAmount, 0, 'COMMA')} + '원'">0원</span>
     </div>
 
     <div class="mileage-info">
       <i class="fas fa-gift me-2"></i>
-      적립 예정 마일리지: <strong id="earnMileage">0</strong>P
+      적립 예정 마일리지: <strong th:text="${#numbers.formatInteger(calculationResult.earnedMileage, 0, 'COMMA')}">0</strong>P
     </div>
   </div>
 
   <!-- 주문 폼 -->
-  <form id="orderForm" action="/order/complete" method="post">
+  <form id="orderCompleteForm" action="/api/order/complete" method="post">
     <input type="hidden" name="bookId" th:value="${orderForm.bookId}">
     <input type="hidden" name="bookName" th:value="${orderForm.bookName}">
     <input type="hidden" name="bookAuthor" th:value="${orderForm.bookAuthor}">
     <input type="hidden" name="bookPublisher" th:value="${orderForm.bookPublisher}">
     <input type="hidden" name="price" th:value="${orderForm.price}">
-    <input type="hidden" name="quantity" id="hiddenQuantity" th:value="${orderForm.quantity}">
-    <input type="hidden" name="usedPoints" id="hiddenUsedPoints" value="0">
-    <input type="hidden" name="finalAmount" id="hiddenFinalAmount" value="0">
+    <input type="hidden" name="quantity" th:value="${orderForm.quantity}">
+    <input type="hidden" name="usedPoints" th:value="${calculationResult.usedPoints}">
+    <input type="hidden" name="finalAmount" th:value="${calculationResult.finalAmount}">
 
-    <button type="submit" class="order-btn" onclick="return validateAndSubmit()">
-      <i class="fas fa-credit-card me-2"></i>주문 완료하기
+    <button type="submit" class="order-btn" id="orderBtn">
+      <span id="orderText"><i class="fas fa-credit-card me-2"></i>주문 완료하기</span>
+      <span class="loading-spinner" id="orderLoading">
+        <i class="fas fa-spinner fa-spin"></i> 처리 중...
+      </span>
     </button>
   </form>
 </div>
 
-<script th:inline="javascript">
-  // 서버에서 전달받은 책 정보
-  const bookData = {
-    bookId: /*[[${orderForm.bookId}]]*/ 0,
-    bookName: /*[[${orderForm.bookName}]]*/ '',
-    price: /*[[${orderForm.price}]]*/ 0,
-    quantity: /*[[${orderForm.quantity}]]*/ 1
-  };
+<!-- 결과 팝업 모달 -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-content">
+    <div class="modal-icon" id="modalIcon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="modal-title" id="modalTitle">주문 완료</div>
+    <div class="modal-message" id="modalMessage">주문이 성공적으로 완료되었습니다.</div>
+    <div>
+      <button class="modal-btn primary" id="modalConfirmBtn">확인</button>
+      <button class="modal-btn secondary" id="modalCancelBtn" style="display: none;">취소</button>
+    </div>
+  </div>
+</div>
 
-  // sessionStorage에서 사용자 데이터 가져오기
-  function getUserData() {
+<script>
+  // JWT 토큰 가져오기
+  function getAccessToken() {
+    return sessionStorage.getItem('accessToken');
+  }
+
+  // 주문 폼 제출 처리
+  document.getElementById('orderCompleteForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!confirm('주문을 진행하시겠습니까?')) {
+      return;
+    }
+
+    await submitOrder();
+  });
+
+  // 주문 제출 함수
+  async function submitOrder() {
+    const orderBtn = document.getElementById('orderBtn');
+    const orderText = document.getElementById('orderText');
+    const orderLoading = document.getElementById('orderLoading');
+
+    // 버튼 비활성화 및 로딩 표시
+    orderBtn.disabled = true;
+    orderText.style.display = 'none';
+    orderLoading.classList.add('show');
+
     try {
-      const userData = sessionStorage.getItem('userData');
-      if (userData) {
-        const parsedData = JSON.parse(userData);
-        return {
-          userId: parsedData.userId || 0,
-          name: parsedData.userName || "사용자",
-          nickname: parsedData.userNickname || "",
-          email: parsedData.userEmail || "",
-          phone: parsedData.userPhone || "",
-          grade: parsedData.userGradeDTO?.gradeName || "BRONZE",
-          points: parsedData.point || 0,
-          discount: parsedData.userGradeDTO?.discount || 0,
-          mileageRate: parsedData.userGradeDTO?.mileageRate || 0,
-          minUsage: parsedData.userGradeDTO?.minUsage || 100
-        };
+      const accessToken = getAccessToken();
+
+      if (!accessToken) {
+        showModal('error', '인증 오류', '로그인이 필요합니다.');
+        return;
       }
-      return {
-        userId: 0,
-        name: "사용자",
-        nickname: "",
-        email: "",
-        phone: "",
-        grade: "BRONZE",
-        points: 0,
-        discount: 0,
-        mileageRate: 0,
-        minUsage: 100
-      };
+
+      // FormData 생성
+      const formData = new FormData(document.getElementById('orderCompleteForm'));
+
+      console.log('주문 요청 시작...');
+
+      // API 호출
+      const response = await fetch('/api/order/complete', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: formData
+      });
+
+      console.log('응답 상태:', response.status);
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('주문 성공:', result);
+        showModal('success', '주문 완료', result.message || '주문이 성공적으로 완료되었습니다.');
+      } else {
+        const errorResult = await response.json();
+        console.error('주문 실패:', errorResult);
+        showModal('error', '주문 실패', errorResult.message || '주문 처리 중 오류가 발생했습니다.');
+      }
+
     } catch (error) {
-      console.error('사용자 데이터 로드 오류:', error);
-      return {
-        userId: 0,
-        name: "사용자",
-        nickname: "",
-        email: "",
-        phone: "",
-        grade: "BRONZE",
-        points: 0,
-        discount: 0,
-        mileageRate: 0,
-        minUsage: 100
-      };
+      console.error('주문 요청 오류:', error);
+      showModal('error', '네트워크 오류', '서버와의 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
+      // 버튼 상태 복원
+      orderBtn.disabled = false;
+      orderText.style.display = 'inline';
+      orderLoading.classList.remove('show');
     }
   }
 
-  const userData = getUserData();
+  // 모달 표시 함수
+  function showModal(type, title, message) {
+    const modal = document.getElementById('resultModal');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const confirmBtn = document.getElementById('modalConfirmBtn');
 
-  // 등급별 혜택 설정
-  const gradeStrategies = {
-    BRONZE: {
-      discount: userData.discount,
-      mileage: userData.mileageRate,
-      freeShipping: false,
-      minUsage: userData.minUsage
-    },
-    SILVER: {
-      discount: userData.discount,
-      mileage: userData.mileageRate,
-      freeShipping: false,
-      minUsage: userData.minUsage
-    },
-    GOLD: {
-      discount: userData.discount,
-      mileage: userData.mileageRate,
-      freeShipping: userData.minUsage <= 0,
-      minUsage: userData.minUsage
+    // 아이콘 설정
+    if (type === 'success') {
+      modalIcon.className = 'modal-icon success';
+      modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+    } else {
+      modalIcon.className = 'modal-icon error';
+      modalIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
     }
-  };
 
-  // 수량 변경
-  function changeQuantity(bookId, change) {
-    const input = document.querySelector(`[data-book-id="${bookId}"] .quantity-input`);
-    if (input) {
-      const newValue = Math.max(1, parseInt(input.value) + change);
-      input.value = newValue;
-      bookData.quantity = newValue;
-      document.getElementById('hiddenQuantity').value = newValue;
-      calculateTotal();
-    }
-  }
+    // 내용 설정
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
 
-  function updateQuantity(bookId, quantity) {
-    const newQuantity = Math.max(1, parseInt(quantity));
-    bookData.quantity = newQuantity;
-    document.getElementById('hiddenQuantity').value = newQuantity;
-    calculateTotal();
-  }
+    // 확인 버튼 이벤트
+    confirmBtn.onclick = function() {
+      modal.style.display = 'none';
+      if (type === 'success') {
+        // 주문 성공 시 메인 페이지로 이동
+        window.location.href = '/search';
+      }
+    };
 
-  // 전액 포인트 사용
-  function useAllPoints() {
-    const pointInput = document.getElementById('pointToUse');
-    const strategy = gradeStrategies[userData.grade] || gradeStrategies.BRONZE;
-    const originalAmount = bookData.price * bookData.quantity;
-    const afterDiscount = originalAmount * (1 - strategy.discount);
-    const shippingCost = (strategy.freeShipping || afterDiscount >= strategy.minUsage) ? 0 : 3000;
-    const maxUsablePoints = Math.min(userData.points, Math.floor(afterDiscount + shippingCost));
+    // 모달 표시
+    modal.style.display = 'block';
 
-    pointInput.value = maxUsablePoints;
-    calculateTotal();
-  }
-
-  // 총액 계산
-  function calculateTotal() {
-    const strategy = gradeStrategies[userData.grade] || gradeStrategies.BRONZE;
-    const originalAmount = bookData.price * bookData.quantity;
-    const gradeDiscount = Math.floor(originalAmount * strategy.discount);
-    const pointToUse = Math.min(parseInt(document.getElementById('pointToUse').value) || 0, userData.points);
-
-    const afterGradeDiscount = originalAmount - gradeDiscount;
-    const shippingCost = (strategy.freeShipping || afterGradeDiscount >= strategy.minUsage) ? 0 : 3000;
-    const finalAmount = Math.max(0, afterGradeDiscount - pointToUse + shippingCost);
-    const earnMileage = Math.floor(originalAmount * strategy.mileage);
-
-    // UI 업데이트
-    document.getElementById('originalAmount').textContent = originalAmount.toLocaleString() + '원';
-    document.getElementById('gradeDiscount').textContent = gradeDiscount > 0 ? '-' + gradeDiscount.toLocaleString() + '원' : '할인 없음';
-    document.getElementById('pointDiscount').textContent = pointToUse > 0 ? '-' + pointToUse.toLocaleString() + '원' : '0원';
-
-    const shippingText = shippingCost === 0 ?
-            (strategy.freeShipping ? '무료배송' : `${strategy.minUsage.toLocaleString()}원 이상 무료`) :
-            shippingCost.toLocaleString() + '원';
-    document.getElementById('shippingCost').textContent = shippingText;
-
-    document.getElementById('finalAmount').textContent = finalAmount.toLocaleString() + '원';
-    document.getElementById('earnMileage').textContent = earnMileage.toLocaleString();
-
-    // 숨겨진 필드 업데이트
-    document.getElementById('hiddenUsedPoints').value = pointToUse;
-    document.getElementById('hiddenFinalAmount').value = finalAmount;
-  }
-
-  function validateAndSubmit() {
-    const finalAmount = parseInt(document.getElementById('hiddenFinalAmount').value);
-    if (finalAmount <= 0) {
-      alert('결제 금액이 올바르지 않습니다.');
-      return false;
-    }
-    return confirm('주문을 진행하시겠습니까?');
+    // 모달 외부 클릭 시 닫기
+    modal.onclick = function(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    };
   }
 
   function goBack() {
@@ -556,24 +543,6 @@
       window.location.href = '/search';
     }
   }
-
-  // 페이지 로드 시 초기화
-  document.addEventListener('DOMContentLoaded', function() {
-    // 사용자 정보 UI 업데이트
-    document.getElementById('userName').textContent = userData.name;
-    document.getElementById('userGrade').textContent = userData.grade;
-    document.getElementById('userGrade').className = `grade-badge grade-${userData.grade.toLowerCase()}`;
-    document.getElementById('userPoints').textContent = userData.points.toLocaleString();
-
-    console.log('사용자 등급 정보:', {
-      grade: userData.grade,
-      discount: userData.discount,
-      mileageRate: userData.mileageRate,
-      minUsage: userData.minUsage
-    });
-
-    calculateTotal();
-  });
 </script>
 </body>
 </html>
