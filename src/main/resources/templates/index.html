@@ -28,6 +28,7 @@
     .book-thumbnail {
       height: 200px;
       object-fit: cover;
+      width: 100%;
     }
     .sidebar {
       background-color: #ffffff;
@@ -53,6 +54,20 @@
       border-radius: 5px;
       padding: 10px;
       margin-bottom: 10px;
+    }
+    .tab-content {
+      padding-top: 20px;
+    }
+    .nav-tabs .nav-link {
+      color: #6c757d;
+      border: none;
+      border-bottom: 2px solid transparent;
+    }
+    .nav-tabs .nav-link.active {
+      color: #495057;
+      background-color: transparent;
+      border-color: #007bff;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -81,32 +96,96 @@
   <div class="row">
     <!-- 메인 콘텐츠 -->
     <div class="col-md-9">
-      <!-- 월간 베스트셀러 -->
+      <!-- 베스트셀러 섹션 -->
       <div class="bestseller-section">
         <div class="container">
-          <h2 class="text-center mb-4">📈 이달의 베스트셀러</h2>
-          <div class="row">
-            <div class="col-md-3 mb-4" th:each="book, iterStat : ${bestSellers}">
-              <div class="card book-card">
-                <img th:src="${book.thumbnailUrl}" class="card-img-top book-thumbnail"
-                     th:alt="${book.title}">
-                <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <span class="badge bg-primary">
-                                                <span th:text="${iterStat.count}">1</span>위
-                                            </span>
-                    <small class="text-muted" th:text="${book.category}">소설</small>
+          <h2 class="text-center mb-4">📈 베스트셀러</h2>
+
+          <!-- 탭 네비게이션 -->
+          <ul class="nav nav-tabs justify-content-center" id="bestsellerTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly"
+                      type="button" role="tab">주간 베스트</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly"
+                      type="button" role="tab">월간 베스트</button>
+            </li>
+          </ul>
+
+          <!-- 탭 콘텐츠 -->
+          <div class="tab-content" id="bestsellerTabContent">
+            <!-- 주간 베스트셀러 -->
+            <div class="tab-pane fade show active" id="weekly" role="tabpanel">
+              <div class="row">
+                <div class="col-md-3 mb-4" th:each="book, iterStat : ${weeklyBestSellers}" th:if="${iterStat.count <= 8}">
+                  <div class="card book-card">
+                    <img th:src="${book.bookImagePath}" class="card-img-top book-thumbnail"
+                         th:alt="${book.bookName}"
+                         onerror="this.src='/images/no-image.png';">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-success">
+                          <span th:text="${iterStat.count}">1</span>위
+                        </span>
+                        <small class="text-muted" th:text="${book.bookPublisher}">출판사</small>
+                      </div>
+                      <h6 class="card-title" th:text="${#strings.abbreviate(book.bookName, 40)}">책 제목</h6>
+                      <p class="card-text text-muted small" th:text="${book.bookAuthor}">저자</p>
+                      <p class="card-text" th:if="${book.bookDiscount}">
+                        <strong th:text="${#numbers.formatInteger(book.bookDiscount, 0, 'COMMA')}">15000</strong>원
+                      </p>
+                      <a th:href="'/book/' + ${book.bookId}" class="btn btn-outline-success btn-sm">자세히 보기</a>
+                    </div>
                   </div>
-                  <h6 class="card-title" th:text="${book.title}">책 제목</h6>
-                  <p class="card-text text-muted small" th:text="${book.author}">저자</p>
-                  <p class="card-text">
-                    <strong th:text="${#numbers.formatInteger(book.price, 0, 'COMMA')}">15000</strong>원
-                  </p>
-                  <a th:href="'/book/' + ${book.id}" class="btn btn-outline-primary btn-sm">자세히 보기</a>
+                </div>
+                <!-- 데이터가 없을 경우 -->
+                <div th:if="${#lists.isEmpty(weeklyBestSellers)}" class="col-12 text-center py-5">
+                  <p class="text-muted">주간 베스트셀러 데이터를 불러오는 중입니다...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 월간 베스트셀러 -->
+            <div class="tab-pane fade" id="monthly" role="tabpanel">
+              <div class="row">
+                <div class="col-md-3 mb-4" th:each="book, iterStat : ${monthlyBestSellers}" th:if="${iterStat.count <= 8}">
+                  <div class="card book-card">
+                    <img th:src="${book.bookImagePath}" class="card-img-top book-thumbnail"
+                         th:alt="${book.bookName}"
+                         onerror="this.src='/images/no-image.png';">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary">
+                          <span th:text="${iterStat.count}">1</span>위
+                        </span>
+                        <small class="text-muted" th:text="${book.bookPublisher}">출판사</small>
+                      </div>
+                      <h6 class="card-title" th:text="${#strings.abbreviate(book.bookName, 40)}">책 제목</h6>
+                      <p class="card-text text-muted small" th:text="${book.bookAuthor}">저자</p>
+                      <p class="card-text" th:if="${book.bookDiscount}">
+                        <strong th:text="${#numbers.formatInteger(book.bookDiscount, 0, 'COMMA')}">15000</strong>원
+                      </p>
+                      <a th:href="'/book/' + ${book.bookId}" class="btn btn-outline-primary btn-sm">자세히 보기</a>
+                    </div>
+                  </div>
+                </div>
+                <!-- 데이터가 없을 경우 -->
+                <div th:if="${#lists.isEmpty(monthlyBestSellers)}" class="col-12 text-center py-5">
+                  <p class="text-muted">월간 베스트셀러 데이터를 불러오는 중입니다...</p>
                 </div>
               </div>
             </div>
           </div>
+
+          <!-- 디버깅 정보 (개발용) -->
+          <div class="mt-3 text-center" th:if="${weeklyBestSellers != null or monthlyBestSellers != null}">
+            <small class="text-muted">
+              주간: <span th:text="${weeklyBestSellers != null ? weeklyBestSellers.size() : 0}">0</span>권,
+              월간: <span th:text="${monthlyBestSellers != null ? monthlyBestSellers.size() : 0}">0</span>권
+            </small>
+          </div>
+
         </div>
       </div>
     </div>
