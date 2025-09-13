@@ -23,7 +23,7 @@ public class User {
     @Column(name = "USER_ID", nullable = false, updatable = false)
     private Integer userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "GRADE_ID", nullable = false, insertable = false)
     private UserGrade userGrade;
 
