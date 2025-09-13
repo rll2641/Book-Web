@@ -1,8 +1,12 @@
 package com.fastcampus.book_bot.service.order;
 
+import com.fastcampus.book_bot.domain.book.Book;
+import com.fastcampus.book_bot.domain.orders.OrderBook;
+import com.fastcampus.book_bot.domain.orders.Orders;
 import com.fastcampus.book_bot.domain.user.User;
 import com.fastcampus.book_bot.dto.order.OrderCalculationResult;
 import com.fastcampus.book_bot.dto.order.OrdersDTO;
+import com.fastcampus.book_bot.repository.BookRepository;
 import com.fastcampus.book_bot.repository.OrderBookRepository;
 import com.fastcampus.book_bot.repository.OrderRepository;
 import com.fastcampus.book_bot.service.grade.GradeStrategy;
@@ -12,11 +16,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final GradeStrategyFactory gradeStrategyFactory;
+    private final OrderBookRepository orderBookRepository;
+    private final OrderRepository orderRepository;
+    private final BookRepository bookRepository;
 
     /**
      * 주문 금액 계산 (User 객체 기반)
@@ -72,5 +83,72 @@ public class OrderService {
                 .earnedMileage(earnedMileage)
                 .gradeName(strategy.getGradeName())
                 .build();
+    }
+
+    @Transactional
+    public void saveOrder(User user, OrdersDTO ordersDTO) {
+        log.info("=== 주문 저장 프로세스 시작 ===");
+        log.info("주문 사용자 정보 - ID: {}, 이름: {}, 등급: {}",
+                user.getUserId(), user.getUserName(), user.getUserGrade().getGradeName());
+        log.info("주문 상품 정보 - ID: {}, 이름: {}, 가격: {}, 수량: {}",
+                ordersDTO.getBookId(), ordersDTO.getBookName(), ordersDTO.getPrice(), ordersDTO.getQuantity());
+
+        try {
+            // 1. 주문 금액 계산
+            log.info("1단계: 주문 금액 계산 시작");
+            OrderCalculationResult calculationResult = calculateOrder(ordersDTO, user);
+            log.info("주문 금액 계산 완료 - 최종 결제금액: {}", calculationResult.getFinalAmount());
+
+            // 2. Book 엔티티 조회
+            log.info("2단계: 도서 정보 조회 시작 - BookID: {}", ordersDTO.getBookId());
+            Book book = bookRepository.findById(ordersDTO.getBookId().intValue())
+                    .orElseThrow(() -> {
+                        log.error("도서 조회 실패 - 존재하지 않는 도서ID: {}", ordersDTO.getBookId());
+                        return new IllegalArgumentException("존재하지 않는 도서입니다: " + ordersDTO.getBookId());
+                    });
+            log.info("도서 조회 성공 - 도서명: {}, 재고: {}", book.getBookName(), book.getBookQuantity());
+
+            // 3. 재고 확인
+            if (book.getBookQuantity() < ordersDTO.getQuantity()) {
+                log.error("재고 부족 - 요청수량: {}, 현재재고: {}", ordersDTO.getQuantity(), book.getBookQuantity());
+                throw new IllegalStateException("재고가 부족합니다. 현재 재고: " + book.getBookQuantity());
+            }
+
+            // 4. Orders 엔티티 생성 및 저장
+            log.info("3단계: 주문 엔티티 생성 및 저장 시작");
+            Orders order = Orders.builder()
+                    .user(user)
+                    .orderStatus("ORDER_READY")
+                    .totalPrice(calculationResult.getFinalAmount())
+                    .orderDay(LocalDate.now())
+                    .orderDate(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            Orders savedOrder = orderRepository.save(order);
+            log.info("주문 저장 성공 - 주문ID: {}, 상태: {}, 총금액: {}",
+                    savedOrder.getOrderId(), savedOrder.getOrderStatus(), savedOrder.getTotalPrice());
+
+            // 5. OrderBook 엔티티 생성 및 저장
+            log.info("4단계: 주문상품 엔티티 생성 및 저장 시작");
+            OrderBook orderBook = OrderBook.builder()
+                    .order(savedOrder)
+                    .book(book)
+                    .quantity(ordersDTO.getQuantity())
+                    .price(ordersDTO.getPrice())
+                    .build();
+
+            OrderBook savedOrderBook = orderBookRepository.save(orderBook);
+            log.info("주문상품 저장 성공 - 주문상품ID: {}, 수량: {}, 가격: {}",
+                    savedOrderBook.getOrderBookId(), savedOrderBook.getQuantity(), savedOrderBook.getPrice());
+
+            log.info("=== 주문 저장 프로세스 완료 ===");
+
+        } catch (Exception e) {
+            log.error("주문 저장 중 오류 발생", e);
+            log.error("오류 상세 정보 - 사용자ID: {}, 상품ID: {}, 오류메시지: {}",
+                    user.getUserId(), ordersDTO.getBookId(), e.getMessage());
+            throw e; // 트랜잭션 롤백을 위해 예외 재발생
+        }
     }
 }
