@@ -7,10 +7,6 @@
   <div class="container">
     <a class="navbar-brand" href="/">📚 온라인 서점</a>
     <div class="navbar-nav ms-auto">
-      <!-- 로그인 상태일 때 표시 -->
-      <span id="user-greeting" class="navbar-text me-3" style="display: none;">
-        안녕하세요, <span id="user-name">사용자님</span>!
-      </span>
 
       <!-- 로그인된 사용자 메뉴 -->
       <div id="logged-in-menu" class="navbar-nav" style="display: none;">
@@ -31,14 +27,30 @@
 <script th:fragment="navigation-script">
   // 페이지 로드 시 로그인 상태 확인
   document.addEventListener('DOMContentLoaded', function() {
-    checkAuthStatus();
+    // DOM이 완전히 로드된 후 약간의 지연을 두고 실행
+    setTimeout(() => {
+      checkAuthStatus();
+    }, 100);
   });
 
-  // 로그인 상태 확인 함수 (sessionStorage 사용)
+  // 로그인 상태 확인 함수 (개선된 버전)
   async function checkAuthStatus() {
     console.log('인증 상태 확인 중...');
+    console.log('현재 페이지:', window.location.pathname);
+    console.log('sessionStorage 토큰:', sessionStorage.getItem('accessToken') ? '존재' : '없음');
+    console.log('쿠키 확인:', document.cookie.includes('refreshToken') ? '존재' : '없음');
 
-    // 1. sessionStorage에서 토큰 복구 시도
+    // 1. 방금 로그인했는지 확인
+    const justLoggedIn = sessionStorage.getItem('justLoggedIn');
+    if (justLoggedIn) {
+      console.log('방금 로그인한 상태 감지');
+      sessionStorage.removeItem('justLoggedIn');
+      // 짧은 지연 후 다시 확인 (DOM 완전 로딩 대기)
+      setTimeout(() => checkAuthStatus(), 200);
+      return;
+    }
+
+    // 2. sessionStorage에서 토큰 복구 시도
     const storedToken = sessionStorage.getItem('accessToken');
     if (storedToken) {
       window.accessToken = storedToken;
@@ -48,12 +60,12 @@
       return;
     }
 
-    // 2. sessionStorage에 토큰이 없으면 Refresh Token으로 재발급 시도
+    // 3. sessionStorage에 토큰이 없으면 Refresh Token으로 재발급 시도
     console.log('sessionStorage에 토큰이 없어서 refresh 시도');
     await refreshAccessToken();
   }
 
-  // Refresh Token으로 Access Token 재발급
+  // Refresh Token으로 Access Token 재발급 (개선된 버전)
   async function refreshAccessToken() {
     try {
       console.log('Refresh Token으로 토큰 갱신 시도...');
@@ -61,6 +73,8 @@
         method: 'POST',
         credentials: 'include' // 쿠키의 refreshToken 포함
       });
+
+      console.log('토큰 갱신 응답 상태:', response.status);
 
       if (response.ok) {
         const result = await response.json();
@@ -72,12 +86,21 @@
           window.accessToken = result.data.accessToken;
           console.log('토큰 갱신 성공, sessionStorage에 저장됨');
 
-          // 로그인 상태 UI 표시 (기본 사용자 정보)
-          const defaultUser = { nickname: '사용자' };
-          sessionStorage.setItem('userData', JSON.stringify(defaultUser));
-          showLoggedInState({ data: defaultUser });
+          // 사용자 정보가 있으면 저장, 없으면 기본값 사용
+          let userData;
+          if (result.data.user) {
+            userData = result.data.user;
+            sessionStorage.setItem('userData', JSON.stringify(userData));
+          } else {
+            // 기본 사용자 정보 (API에서 사용자 정보를 반환하지 않는 경우)
+            userData = { nickname: '사용자' };
+            sessionStorage.setItem('userData', JSON.stringify(userData));
+          }
+
+          // 로그인 상태 UI 표시
+          showLoggedInState({ data: userData });
         } else {
-          console.log('토큰 갱신 실패 - 응답 데이터 문제');
+          console.log('토큰 갱신 실패 - 응답 데이터 문제:', result);
           showLoggedOutState();
         }
       } else {
@@ -90,10 +113,11 @@
     }
   }
 
-  // 로그인 상태 UI 표시
+  // 로그인 상태 UI 표시 (개선된 버전)
   function showLoggedInState(userData) {
     console.log('로그인 UI 표시:', userData);
 
+    // 사용자 이름 설정
     if (userData && userData.data) {
       const nickname = userData.data.nickname || userData.data.name || '사용자님';
       const userNameElement = document.getElementById('user-name');
@@ -102,16 +126,41 @@
       }
     }
 
+    // UI 요소들 가져오기
     const userGreeting = document.getElementById('user-greeting');
     const loggedInMenu = document.getElementById('logged-in-menu');
     const loggedOutMenu = document.getElementById('logged-out-menu');
 
-    if (userGreeting) userGreeting.style.display = 'block';
-    if (loggedInMenu) loggedInMenu.style.display = 'flex';
-    if (loggedOutMenu) loggedOutMenu.style.display = 'none';
+    // 부드러운 전환 효과와 함께 UI 업데이트
+    if (loggedOutMenu) {
+      loggedOutMenu.style.transition = 'opacity 0.3s ease';
+      loggedOutMenu.style.opacity = '0';
+
+      setTimeout(() => {
+        loggedOutMenu.style.display = 'none';
+
+        if (userGreeting) {
+          userGreeting.style.display = 'block';
+          userGreeting.style.opacity = '0';
+          userGreeting.style.transition = 'opacity 0.3s ease';
+          setTimeout(() => userGreeting.style.opacity = '1', 50);
+        }
+
+        if (loggedInMenu) {
+          loggedInMenu.style.display = 'flex';
+          loggedInMenu.style.opacity = '0';
+          loggedInMenu.style.transition = 'opacity 0.3s ease';
+          setTimeout(() => loggedInMenu.style.opacity = '1', 50);
+        }
+      }, 300);
+    } else {
+      // 전환 효과 없이 바로 표시
+      if (userGreeting) userGreeting.style.display = 'block';
+      if (loggedInMenu) loggedInMenu.style.display = 'flex';
+    }
   }
 
-  // 로그아웃 상태 UI 표시
+  // 로그아웃 상태 UI 표시 (개선된 버전)
   function showLoggedOutState() {
     console.log('로그아웃 UI 표시');
 
@@ -120,43 +169,112 @@
     window.userData = null;
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('justLoggedIn'); // 추가
 
+    // UI 요소들 가져오기
     const userGreeting = document.getElementById('user-greeting');
     const loggedInMenu = document.getElementById('logged-in-menu');
     const loggedOutMenu = document.getElementById('logged-out-menu');
 
-    if (userGreeting) userGreeting.style.display = 'none';
-    if (loggedInMenu) loggedInMenu.style.display = 'none';
-    if (loggedOutMenu) loggedOutMenu.style.display = 'flex';
+    // 부드러운 전환 효과와 함께 UI 업데이트
+    if (loggedInMenu) {
+      loggedInMenu.style.transition = 'opacity 0.3s ease';
+      loggedInMenu.style.opacity = '0';
+
+      setTimeout(() => {
+        if (userGreeting) userGreeting.style.display = 'none';
+        if (loggedInMenu) loggedInMenu.style.display = 'none';
+
+        if (loggedOutMenu) {
+          loggedOutMenu.style.display = 'flex';
+          loggedOutMenu.style.opacity = '0';
+          loggedOutMenu.style.transition = 'opacity 0.3s ease';
+          setTimeout(() => loggedOutMenu.style.opacity = '1', 50);
+        }
+      }, 300);
+    } else {
+      // 전환 효과 없이 바로 표시
+      if (userGreeting) userGreeting.style.display = 'none';
+      if (loggedInMenu) loggedInMenu.style.display = 'none';
+      if (loggedOutMenu) loggedOutMenu.style.display = 'flex';
+    }
   }
 
-  // 로그아웃 처리
+  // 로그아웃 처리 (개선된 버전)
   document.addEventListener('DOMContentLoaded', function() {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async function(e) {
         e.preventDefault();
 
+        console.log('로그아웃 시도...');
+
         try {
-          await fetch('/api/member/logout', {
+          const response = await fetch('/api/member/logout', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${window.accessToken}`
+              'Authorization': `Bearer ${window.accessToken || sessionStorage.getItem('accessToken')}`
             },
             credentials: 'include'
           });
+
+          if (response.ok) {
+            console.log('서버 로그아웃 성공');
+          } else {
+            console.log('서버 로그아웃 실패, 클라이언트에서만 정리');
+          }
         } catch (error) {
-          console.error('로그아웃 실패:', error);
+          console.error('로그아웃 요청 실패:', error);
         }
 
+        // 클라이언트 상태 정리 및 UI 업데이트
         showLoggedOutState();
-        window.location.href = '/';
+
+        // 메인 페이지로 이동
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
       });
     }
   });
 
-  // 전역 함수로 노출
+  // 전역 함수로 노출 (다른 페이지에서 호출 가능)
   window.updateAuthStatus = checkAuthStatus;
+  window.showLoggedInState = showLoggedInState;
+  window.showLoggedOutState = showLoggedOutState;
+
+  // API 호출 시 토큰 만료 자동 처리 유틸리티 함수
+  window.apiCall = async function(url, options = {}) {
+    let token = window.accessToken || sessionStorage.getItem('accessToken');
+
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': token ? `Bearer ${token}` : undefined
+      }
+    });
+
+    if (response.status === 401) {
+      console.log('토큰 만료 감지, 자동 갱신 시도...');
+      // 토큰 만료 시 자동 갱신 시도
+      await refreshAccessToken();
+      token = window.accessToken || sessionStorage.getItem('accessToken');
+
+      if (token) {
+        // 갱신된 토큰으로 재시도
+        return fetch(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    }
+
+    return response;
+  };
 </script>
 </body>
 </html>

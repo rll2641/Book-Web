@@ -355,12 +355,6 @@
                   <span>또는</span>
                 </div>
 
-                <!-- 구글 로그인 -->
-                <a href="/oauth/google/login" class="btn btn-google">
-                  <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" class="google-icon">
-                  Google로 로그인
-                </a>
-
                 <!-- 회원가입 링크 -->
                 <div class="signup-link">
                   <span class="text-muted">아직 계정이 없으신가요? </span>
@@ -399,7 +393,7 @@
     `;
   }
 
-  // 수정된 로그인 처리 함수 (sessionStorage 사용)
+  // 수정된 로그인 처리 함수 (개선된 버전)
   async function handleLogin(event) {
     event.preventDefault();
 
@@ -454,14 +448,19 @@
 
         // 3. 현재 페이지의 네비게이션 바 업데이트 (있다면)
         if (typeof window.updateAuthStatus === 'function') {
+          console.log('현재 페이지 네비게이션 업데이트 시도');
           window.updateAuthStatus();
         }
 
-        // 4. 1초 후 메인 페이지로 이동
+        // 4. 페이지 이동 전 플래그 설정 (중요!)
+        sessionStorage.setItem('justLoggedIn', 'true');
+        console.log('justLoggedIn 플래그 설정됨');
+
+        // 5. 짧은 지연 후 메인 페이지로 이동
         setTimeout(() => {
           console.log('메인 페이지로 이동...');
           window.location.href = '/';
-        }, 1000);
+        }, 1500); // 1.5초로 증가하여 사용자가 성공 메시지를 볼 수 있도록
 
       } else {
         console.log('로그인 실패:', result.message);
@@ -479,17 +478,41 @@
     return false;
   }
 
-  // 페이지 로드 시 토큰 상태 확인
+  // 페이지 로드 시 토큰 상태 확인 (개선된 버전)
   document.addEventListener('DOMContentLoaded', function() {
     console.log('로그인 페이지 로드됨');
 
     // 이미 로그인되어 있다면 메인 페이지로 리다이렉트
     const accessToken = sessionStorage.getItem('accessToken');
     if (accessToken) {
-      console.log('이미 로그인된 상태, 메인 페이지로 이동');
-      window.location.href = '/';
+      console.log('이미 로그인된 상태, 토큰 유효성 확인 중...');
+
+      // 토큰이 있어도 서버에서 유효성 검증
+      fetch('/api/member/refresh', {
+        method: 'POST',
+        credentials: 'include'
+      })
+              .then(response => {
+                if (response.ok) {
+                  console.log('유효한 토큰, 메인 페이지로 이동');
+                  window.location.href = '/';
+                } else {
+                  console.log('만료된 토큰, 로그인 페이지 유지');
+                  // 만료된 토큰 정리
+                  sessionStorage.removeItem('accessToken');
+                  sessionStorage.removeItem('userData');
+                }
+              })
+              .catch(error => {
+                console.log('토큰 검증 실패, 로그인 페이지 유지');
+                sessionStorage.removeItem('accessToken');
+                sessionStorage.removeItem('userData');
+              });
     }
   });
 </script>
+
+<!-- 네비게이션 스크립트 포함 (중요!) -->
+<script th:replace="~{common/navigation :: navigation-script}"></script>
 </body>
 </html>
