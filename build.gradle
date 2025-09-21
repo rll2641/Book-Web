@@ -40,6 +40,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     // 암호화 및 해싱 기능
     implementation 'org.springframework.security:spring-security-crypto:5.7.2'
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     // 데이터베이스 마이그레이션 도구 (Flyway)
     implementation 'org.flywaydb:flyway-core'
     // MySQL용 Flyway 지원
@@ -63,6 +65,8 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     // JWT JSON 처리(Jackson 연동)
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    implementation 'org.springframework.session:spring-session-data-redis'
 }
 
 tasks.named('test') {
