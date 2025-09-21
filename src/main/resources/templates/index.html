@@ -202,5 +202,25 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 네비게이션 스크립트 포함 (중요!) -->
+<script th:replace="~{common/navigation :: navigation-script}"></script>
+
+<script>
+  // 메인 페이지 전용 스크립트
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('메인 페이지 로드됨');
+
+    // 로그인 상태 확인 (네비게이션 스크립트가 로드된 후)
+    setTimeout(() => {
+      if (typeof window.updateAuthStatus === 'function') {
+        console.log('메인 페이지에서 인증 상태 확인');
+        window.updateAuthStatus();
+      } else {
+        console.log('네비게이션 스크립트가 아직 로드되지 않음');
+      }
+    }, 200);
+  });
+</script>
 </body>
 </html>
