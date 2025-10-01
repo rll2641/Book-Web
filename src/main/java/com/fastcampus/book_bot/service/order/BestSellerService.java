@@ -7,6 +7,7 @@ import com.fastcampus.book_bot.repository.OrderBookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,38 +32,81 @@ public class BestSellerService {
     @Transactional
     public List<Book> getWeekBestSeller() {
 
-        LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+        try {
+            Object cached = redisTemplate.opsForValue().get(WEEKLY_BESTSELLER_KEY);
 
-        List<BookSalesDTO> weekSalesList = orderBookRepository.findWeeklyBestSellers(weekAgo);
-
-        List<Book> bookList = new ArrayList<>();
-
-        for (BookSalesDTO bookSalesDTO : weekSalesList) {
-            Optional<Book> book = bookRepository.findById(bookSalesDTO.getBookId());
-            book.ifPresent(bookList::add);
+            if (cached instanceof List<?>) {
+                log.info("주간 베스트셀러 캐시 조회 성공");
+                return (List<Book>) cached;
+            }
+            log.warn("주간 베스트셀러 캐시가 없습니다.");
+            return new ArrayList<>();
+        } catch (Exception e) {
+            log.error("주간 베스트셀러 캐시 조회 실패",e);
+            return new ArrayList<>();
         }
-
-        redisTemplate.opsForValue().set(WEEKLY_BESTSELLER_KEY, bookList, Duration.ofDays(7));
-
-        return bookList;
     }
 
     @Transactional
     public List<Book> getMonthBestSeller() {
 
-        LocalDateTime monthAgo = LocalDateTime.now().minusDays(30);
-
-        List<BookSalesDTO> monthlySalesList = orderBookRepository.findMonthlyBestSellers(monthAgo);
-
-        List<Book> bookList = new ArrayList<>();
-
-        for (BookSalesDTO bookSalesDTO : monthlySalesList) {
-            Optional<Book> book = bookRepository.findById(bookSalesDTO.getBookId());
-            book.ifPresent(bookList::add);
+        try {
+            Object cached = redisTemplate.opsForValue().get(MONTHLY_BESTSELLER_KEY);
+            if (cached instanceof List<?>) {
+                log.info("월간 베스트셀러 캐시 조회 성공");
+                return (List<Book>) cached;
+            }
+            log.warn("월간 베스트셀러 캐시가 없습니다.");
+            return new ArrayList<>();
+        } catch (Exception e) {
+            log.error("월간 베스트셀러 캐시 조회 실패", e);
+            return new ArrayList<>();
         }
+    }
 
-        redisTemplate.opsForValue().set(MONTHLY_BESTSELLER_KEY, bookList, Duration.ofDays(30));
+    @Scheduled(cron = "0 0 4 * * MON")
+    @Transactional(readOnly = true)
+    public void updateWeeklyBestSeller() {
 
-        return bookList;
+        try {
+            log.info("주간 베스트셀러 캐시 갱신 시작");
+
+            LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+            List<BookSalesDTO> weeklyBestSellers = orderBookRepository.findWeeklyBestSellers(weekAgo);
+
+            List<Book> bookList = new ArrayList<>();
+            for (BookSalesDTO bookSalesDTO : weeklyBestSellers) {
+                Optional<Book> book = bookRepository.findById(bookSalesDTO.getBookId());
+                book.ifPresent(bookList::add);
+            }
+
+            redisTemplate.opsForValue().set(WEEKLY_BESTSELLER_KEY, bookList, Duration.ofDays(7));
+            log.info("주간 베스트셀러 캐시 갱신 완료");
+        } catch (Exception e) {
+            log.error("주간 베스트셀러 캐시 갱신 실패", e);
+        }
+    }
+
+    @Scheduled(cron = "0 0 4 1 * *")
+    @Transactional(readOnly = true)
+    public void updateMonthBestSeller() {
+
+        try {
+            log.info("월간 베스트셀러 캐시 갱신 시작");
+
+            LocalDateTime monthAgo = LocalDateTime.now().minusDays(30);
+            List<BookSalesDTO> monthlySalesList = orderBookRepository.findMonthlyBestSellers(monthAgo);
+
+            List<Book> bookList = new ArrayList<>();
+            for (BookSalesDTO bookSalesDTO : monthlySalesList) {
+                Optional<Book> book = bookRepository.findById(bookSalesDTO.getBookId());
+                book.ifPresent(bookList::add);
+            }
+
+            redisTemplate.opsForValue().set(MONTHLY_BESTSELLER_KEY, bookList, Duration.ofDays(30));
+            log.info("월간 베스트셀러 캐시 갱신 완료: {} 건", bookList.size());
+        } catch (Exception e) {
+            log.error("월간 베스트셀러 캐시 갱신 실패", e);
+        }
     }
 }
