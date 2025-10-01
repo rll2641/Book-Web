@@ -7,6 +7,7 @@ import com.fastcampus.book_bot.service.auth.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ public class OrderStockService {
     private final BookRepository bookRepository;
     private final NotificationSubRepository notificationSubRepository;
     private final MailService mailService;
+    private final ThreadPoolTaskExecutor taskExecutor;
 
     /**
      * DB 재고 차감 및 알림 처리 (비동기)
@@ -38,7 +40,8 @@ public class OrderStockService {
                     bookId,
                     bookRepository,
                     notificationSubRepository,
-                    mailService
+                    mailService,
+                    taskExecutor
             );
 
             stockManager.updateStock(newQuantity);
