@@ -11,11 +11,13 @@ import com.fastcampus.book_bot.repository.OrderBookRepository;
 import com.fastcampus.book_bot.repository.OrderRepository;
 import com.fastcampus.book_bot.repository.NotificationSubRepository;
 import com.fastcampus.book_bot.service.auth.MailService;
+import com.fastcampus.book_bot.service.book.BookCacheService;
 import com.fastcampus.book_bot.service.grade.GradeStrategy;
 import com.fastcampus.book_bot.service.grade.GradeStrategyFactory;
 import com.fastcampus.book_bot.service.noti.BookStockManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class OrderService {
     private final GradeStrategyFactory gradeStrategyFactory;
     private final OrderBookRepository orderBookRepository;
     private final OrderRepository orderRepository;
+    private final BookCacheService bookCacheService;
     private final BookRepository bookRepository;
     private final NotificationSubRepository notificationSubRepository;
     private final MailService mailService;
@@ -41,12 +44,12 @@ public class OrderService {
         return calculateOrder(
                 user.getUserGrade().getGradeName(),
                 ordersDTO.getPrice() * ordersDTO.getQuantity(),
-                0  // 포인트 사용은 기본값 0 (나중에 추가 가능)
+               user.getPoint()
         );
     }
 
     /**
-     * 주문 금액 계산 (포인트 사용 포함)
+     * 주문 금액 계산
      */
     public OrderCalculationResult calculateOrder(OrdersDTO ordersDTO, User user, Integer usedPoints) {
         return calculateOrder(
@@ -97,16 +100,35 @@ public class OrderService {
             OrderCalculationResult calculationResult = calculateOrder(ordersDTO, user);
             log.info("주문 금액 계산 완료 - 최종 결제금액: {}", calculationResult.getFinalAmount());
 
-            Book book = bookRepository.findById(ordersDTO.getBookId().intValue())
-                    .orElseThrow(() -> {
-                        log.error("도서 조회 실패 - 존재하지 않는 도서ID: {}", ordersDTO.getBookId());
-                        return new IllegalArgumentException("존재하지 않는 도서입니다: " + ordersDTO.getBookId());
-                    });
-            log.info("도서 조회 성공 - 도서명: {}, 재고: {}", book.getBookName(), book.getBookQuantity());
+            Book book;
+            boolean isRedis = false;
 
-            if (book.getBookQuantity() < ordersDTO.getQuantity()) {
-                log.error("재고 부족 - 요청수량: {}, 현재재고: {}", ordersDTO.getQuantity(), book.getBookQuantity());
-                throw new IllegalStateException("재고가 부족합니다. 현재 재고: " + book.getBookQuantity());
+            Integer currentStock = bookCacheService.getBookQuantity(ordersDTO.getBookId());
+
+            if (currentStock != null) {
+                isRedis = true;
+                book = bookCacheService.getBook(ordersDTO.getBookId());
+                log.info("Redis 사용 - BookId: {}", ordersDTO.getBookId());
+
+                if (currentStock < ordersDTO.getQuantity()) {
+                    log.error("재고 부족 - 요청수량: {}, 현재재고: {}", ordersDTO.getQuantity(), currentStock);
+                    throw new IllegalStateException("재고가 부족합니다. 현재 재고: " + currentStock);
+                }
+
+                bookCacheService.decrementBookQuantity(ordersDTO.getBookId(), ordersDTO.getQuantity());
+            } else {
+                log.info("Redis 캐시 미스 - DB 조회 시작 - 도서ID: {}", ordersDTO.getBookId());
+                book = bookRepository.findById(ordersDTO.getBookId())
+                        .orElseThrow(() -> {
+                            log.error("도서 조회 실패 - 존재하지 않는 도서ID: {}", ordersDTO.getBookId());
+                            return new IllegalArgumentException("존재하지 않는 도서입니다: " + ordersDTO.getBookId());
+                        });
+                log.info("DB 조회 완료 - 도서명: {}, 현재재고: {}", book.getBookName(), book.getBookQuantity());
+
+                if (book.getBookQuantity() < ordersDTO.getQuantity()) {
+                    log.error("재고 부족 - 요청수량: {}, 현재재고: {}", ordersDTO.getQuantity(), book.getBookQuantity());
+                    throw new IllegalStateException("재고가 부족합니다. 현재 재고: " + book.getBookQuantity());
+                }
             }
 
             Orders order = Orders.builder()
@@ -133,15 +155,39 @@ public class OrderService {
             log.info("주문상품 저장 성공 - 주문상품ID: {}, 수량: {}, 가격: {}",
                     savedOrderBook.getOrderBookId(), savedOrderBook.getQuantity(), savedOrderBook.getPrice());
 
+            updateStockAsync(book.getBookId(), ordersDTO.getQuantity());
             updateStockAndNotify(book.getBookId(), ordersDTO.getQuantity());
 
-            log.info("=== 주문 저장 프로세스 완료 ===");
+            log.info("=== 주문 저장 프로세스 완료 (Redis 캐시 히트: {}) ===", isRedis);
 
         } catch (Exception e) {
             log.error("주문 저장 중 오류 발생", e);
             log.error("오류 상세 정보 - 사용자ID: {}, 상품ID: {}, 오류메시지: {}",
                     user.getUserId(), ordersDTO.getBookId(), e.getMessage());
             throw e;
+        }
+    }
+
+    /**
+     * DB 재고 차감 (비동기)
+     */
+    @Async
+    public void updateStockAsync(Integer bookId, Integer orderQuantity) {
+
+        try {
+            Book book = bookRepository.findById(bookId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도서입니다: " + bookId));
+
+            Integer newQuantity = book.getBookQuantity() - orderQuantity;
+            log.info("재고 업데이트 시작 (비동기) - 도서: {}, 기존재고: {}, 주문수량: {}, 새재고: {}",
+                    book.getBookName(), book.getBookQuantity(), orderQuantity, newQuantity);
+
+            bookRepository.updateBookQuantity(bookId, newQuantity);
+
+            log.info("DB 재고 업데이트 완료 (비동기) - 도서ID: {}", bookId);
+
+        } catch (Exception e) {
+            log.error("DB 재고 업데이트 중 오류 발생 (비동기) - 도서ID: {}", bookId, e);
         }
     }
 

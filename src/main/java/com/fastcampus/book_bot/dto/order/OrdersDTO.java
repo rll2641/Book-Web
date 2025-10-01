@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 public class OrdersDTO {
 
-    private Long bookId;
+    private Integer bookId;
     private String bookName;
     private String bookAuthor;
     private String bookPublisher;
