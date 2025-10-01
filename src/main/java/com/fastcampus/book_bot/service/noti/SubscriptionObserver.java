@@ -38,7 +38,6 @@ public class SubscriptionObserver implements StockObserver {
         }
 
         int currentStock = subject.getCurrentStock();
-        int bookId = subject.getBookId();
         String bookTitle = subject.getBookTitle();
 
         // 임계값 조건 확인 - 현재 재고가 설정한 임계값 이하일 때만 알림
@@ -68,11 +67,11 @@ public class SubscriptionObserver implements StockObserver {
 
     private String createNotificationMessage(String bookTitle, int currentStock) {
         if (currentStock == 0) {
-            return "⚠️ '" + bookTitle + "' 품절되었습니다!";
+            return bookTitle + "' 품절되었습니다!";
         } else if (currentStock <= 3) {
-            return "🔥 '" + bookTitle + "' 재고 부족! 남은 수량: " + currentStock + "권";
+            return bookTitle + "' 재고 부족! 남은 수량: " + currentStock + "권";
         } else {
-            return "📢 '" + bookTitle + "' 재고 알림: " + currentStock + "권 남음";
+            return bookTitle + "' 재고 알림: " + currentStock + "권 남음";
         }
     }
 }

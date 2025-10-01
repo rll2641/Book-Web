@@ -34,6 +34,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     // Bean Validation (입력값 검증)
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    // 횡단 관심사
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
     // 이메일 발송 기능
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     // Redis 데이터베이스 연동
