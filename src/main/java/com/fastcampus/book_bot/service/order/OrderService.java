@@ -15,6 +15,7 @@ import com.fastcampus.book_bot.service.book.BookCacheService;
 import com.fastcampus.book_bot.service.grade.GradeStrategy;
 import com.fastcampus.book_bot.service.grade.GradeStrategyFactory;
 import com.fastcampus.book_bot.service.noti.BookStockManager;
+import com.fastcampus.book_bot.service.noti.OrderStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -33,9 +34,8 @@ public class OrderService {
     private final OrderBookRepository orderBookRepository;
     private final OrderRepository orderRepository;
     private final BookCacheService bookCacheService;
+    private final OrderStockService orderStockService;
     private final BookRepository bookRepository;
-    private final NotificationSubRepository notificationSubRepository;
-    private final MailService mailService;
 
     /**
      * 주문 금액 계산 (User 객체 기반)
@@ -155,8 +155,7 @@ public class OrderService {
             log.info("주문상품 저장 성공 - 주문상품ID: {}, 수량: {}, 가격: {}",
                     savedOrderBook.getOrderBookId(), savedOrderBook.getQuantity(), savedOrderBook.getPrice());
 
-            updateStockAsync(book.getBookId(), ordersDTO.getQuantity());
-            updateStockAndNotify(book.getBookId(), ordersDTO.getQuantity());
+            orderStockService.updateStockAndNotify(book.getBookId(), ordersDTO.getQuantity());
 
             log.info("=== 주문 저장 프로세스 완료 (Redis 캐시 히트: {}) ===", isRedis);
 
@@ -168,56 +167,4 @@ public class OrderService {
         }
     }
 
-    /**
-     * DB 재고 차감 (비동기)
-     */
-    @Async
-    public void updateStockAsync(Integer bookId, Integer orderQuantity) {
-
-        try {
-            Book book = bookRepository.findById(bookId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도서입니다: " + bookId));
-
-            Integer newQuantity = book.getBookQuantity() - orderQuantity;
-            log.info("재고 업데이트 시작 (비동기) - 도서: {}, 기존재고: {}, 주문수량: {}, 새재고: {}",
-                    book.getBookName(), book.getBookQuantity(), orderQuantity, newQuantity);
-
-            bookRepository.updateBookQuantity(bookId, newQuantity);
-
-            log.info("DB 재고 업데이트 완료 (비동기) - 도서ID: {}", bookId);
-
-        } catch (Exception e) {
-            log.error("DB 재고 업데이트 중 오류 발생 (비동기) - 도서ID: {}", bookId, e);
-        }
-    }
-
-    /**
-     * 재고 업데이트 및 알림 처리
-     */
-    @Transactional
-    public void updateStockAndNotify(Integer bookId, Integer orderQuantity) {
-        try {
-            Book book = bookRepository.findById(bookId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도서입니다: " + bookId));
-
-            Integer newQuantity = book.getBookQuantity() - orderQuantity;
-            log.info("재고 업데이트 시작 - 도서: {}, 기존재고: {}, 주문수량: {}, 새재고: {}",
-                    book.getBookName(), book.getBookQuantity(), orderQuantity, newQuantity);
-
-            BookStockManager stockManager = new BookStockManager(
-                    bookId,
-                    bookRepository,
-                    notificationSubRepository,
-                    mailService
-            );
-
-            stockManager.updateStock(newQuantity);
-
-            log.info("재고 업데이트 및 알림 처리 완료 - 도서ID: {}", bookId);
-
-        } catch (Exception e) {
-            log.error("재고 업데이트 및 알림 처리 중 오류 발생 - 도서ID: {}", bookId, e);
-            throw e;
-        }
-    }
 }
