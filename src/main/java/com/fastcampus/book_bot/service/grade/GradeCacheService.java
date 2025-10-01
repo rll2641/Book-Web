@@ -23,23 +23,19 @@ public class GradeCacheService {
     private final UserGradeRepository userGradeRepository;
 
     private static final String GRADE_CACHE_KEY = "grade:";
-    private static final Duration CACHE_TTL = Duration.ofHours(24);
 
     @Transactional(readOnly = true)
     public GradeInfo getGradeInfo(String gradeName) {
         String cacheKey = GRADE_CACHE_KEY + gradeName;
 
         try {
-            // Redis 조회
             Object cachedValue = redisTemplate.opsForValue().get(cacheKey);
 
             if (cachedValue != null) {
-                // LinkedHashMap인 경우 GradeInfo 객체로 변환
                 if (cachedValue instanceof LinkedHashMap) {
                     LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) cachedValue;
                     return mapToGradeInfo(map);
                 }
-                // 이미 GradeInfo 객체인 경우
                 else if (cachedValue instanceof GradeInfo) {
                     return (GradeInfo) cachedValue;
                 }
@@ -48,12 +44,11 @@ public class GradeCacheService {
             log.warn("Redis에서 등급 정보 조회 실패: {}, DB에서 조회합니다.", gradeName, e);
         }
 
-        // 캐시에 없거나 오류 발생 시 DB에서 조회
         return userGradeRepository.findByGradeName(gradeName)
                 .map(this::convertToGradeInfo)
                 .map(gradeInfo -> {
                     try {
-                        redisTemplate.opsForValue().set(cacheKey, gradeInfo, CACHE_TTL);
+                        redisTemplate.opsForValue().set(cacheKey, gradeInfo, Duration.ofDays(30));
                     } catch (Exception e) {
                         log.warn("Redis 캐시 저장 실패: {}", gradeName, e);
                     }
@@ -81,7 +76,6 @@ public class GradeCacheService {
         }
     }
 
-    // LinkedHashMap을 GradeInfo로 변환하는 헬퍼 메서드
     private GradeInfo mapToGradeInfo(LinkedHashMap<String, Object> map) {
         try {
             return GradeInfo.builder()
