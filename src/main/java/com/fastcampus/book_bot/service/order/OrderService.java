@@ -102,21 +102,18 @@ public class OrderService {
             Integer currentStock = bookCacheService.getBookQuantity(ordersDTO.getBookId());
 
             if (currentStock != null) {
-                // ✅ Redis 캐시 사용 - Lua Script로 원자적 재고 차감
                 isRedis = true;
                 log.info("Redis 캐시 히트 - BookId: {}, 현재재고: {}",
                         ordersDTO.getBookId(), currentStock);
 
                 try {
-                    // ⭐ 핵심: 원자적 재고 차감 (Lua Script 실행)
                     Long remainingStock = bookCacheService.decrementBookQuantity(
                             ordersDTO.getBookId(),
                             ordersDTO.getQuantity()
                     );
 
-                    log.info("✅ 원자적 재고 차감 성공 - 남은재고: {}", remainingStock);
+                    log.info("원자적 재고 차감 성공 - 남은재고: {}", remainingStock);
 
-                    // Book 객체 조회 (재고는 이미 차감됨)
                     book = bookCacheService.getBook(ordersDTO.getBookId());
 
                 } catch (IllegalStateException e) {
@@ -160,7 +157,7 @@ public class OrderService {
 
             orderStockService.updateStockAndNotify(book.getBookId(), ordersDTO.getQuantity());
 
-            log.info("=== ✅ 주문 저장 프로세스 완료 (Redis 사용: {}) ===", isRedis);
+            log.info("=== 주문 저장 프로세스 완료 (Redis 사용: {}) ===", isRedis);
 
         } catch (IllegalStateException e) {
             log.error("주문 실패 - {}", e.getMessage());
