@@ -44,4 +44,23 @@ public class MainController {
 
         return "index";
     }
+
+    @GetMapping("/test/db")
+    public String mainWithDB(Model model) {
+        try {
+            List<Book> monthlyBestSellers = bestSellerService.getMonthBestSellerFromDB();
+            List<Book> weeklyBestSellers = bestSellerService.getWeekBestSellerFromDB();
+
+            model.addAttribute("monthlyBestSellers", monthlyBestSellers);
+            model.addAttribute("weeklyBestSellers", weeklyBestSellers);
+
+            log.info("DB BestSellers loaded - Monthly: {}, Weekly: {}",
+                    monthlyBestSellers.size(), weeklyBestSellers.size());
+        } catch (Exception e) {
+            log.error("Error loading bestsellers from DB", e);
+            model.addAttribute("monthlyBestSellers", List.of());
+            model.addAttribute("weeklyBestSellers", List.of());
+        }
+        return "index";
+    }
 }
