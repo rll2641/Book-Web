@@ -1,20 +1,35 @@
-<!-- 최근 조회한 책 -->
-<div th:fragment="recentBooks" class="recent-books" th:if="${session.user}">
-  <h5>👀 최근 조회한 책</h5>
-  <div class="banner-item" th:each="book : ${recentBooks}">
-    <div class="row">
-      <div class="col-4">
-        <img th:src="${book.thumbnailUrl}" class="img-fluid"
-             th:alt="${book.title}" style="height: 60px; object-fit: cover;">
-      </div>
-      <div class="col-8">
-        <small>
-          <a th:href="'/book/' + ${book.id}"
-             class="text-decoration-none" th:text="${book.title}">책 제목</a>
-        </small>
-        <br>
-        <small class="text-muted" th:text="${book.author}">저자</small>
-      </div>
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="recentBooks" class="recent-books">
+  <!-- JavaScript가 이 ID로 컨테이너를 찾습니다 -->
+  <div id="recent-books-container">
+    <!-- 로딩 중 표시 (JavaScript가 로드되기 전) -->
+    <div class="text-center py-3">
+      <small class="text-muted">로딩 중...</small>
     </div>
   </div>
 </div>
+
+<style>
+  .banner-item {
+    padding: 10px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: var(--bg-light);
+  }
+
+  .banner-item:hover {
+    background: #f3f4f6;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .banner-item a:hover {
+    color: var(--primary-color) !important;
+  }
+</style>
+
+</body>
+</html>
