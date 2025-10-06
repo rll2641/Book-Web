@@ -1,15 +1,19 @@
 package com.fastcampus.book_bot.controller;
 
+import com.fastcampus.book_bot.common.utils.JwtUtil;
 import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.dto.keyword.KeywordDTO;
 import com.fastcampus.book_bot.service.navigation.PopularKeywordService;
+import com.fastcampus.book_bot.service.navigation.RecentlyViewService;
 import com.fastcampus.book_bot.service.order.BestSellerService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -19,9 +23,12 @@ public class MainController {
 
     private final BestSellerService bestSellerService;
     private final PopularKeywordService popularKeywordService;
+    private final RecentlyViewService recentlyViewService;
+    private final JwtUtil jwtUtil;
 
     @GetMapping
-    public String main(Model model) {
+    public String main(HttpServletRequest request,
+                       Model model) {
         try {
             // 월간 베스트셀러 데이터 조회 및 캐시 업데이트
             bestSellerService.getMonthBestSeller();
