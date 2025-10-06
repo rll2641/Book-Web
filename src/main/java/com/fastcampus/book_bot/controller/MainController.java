@@ -1,6 +1,8 @@
 package com.fastcampus.book_bot.controller;
 
 import com.fastcampus.book_bot.domain.book.Book;
+import com.fastcampus.book_bot.dto.keyword.KeywordDTO;
+import com.fastcampus.book_bot.service.navigation.PopularKeywordService;
 import com.fastcampus.book_bot.service.order.BestSellerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import java.util.List;
 public class MainController {
 
     private final BestSellerService bestSellerService;
+    private final PopularKeywordService popularKeywordService;
 
     @GetMapping
     public String main(Model model) {
@@ -28,16 +31,17 @@ public class MainController {
             bestSellerService.getWeekBestSeller();
             List<Book> weeklyBestSellers = bestSellerService.getWeekBestSeller();
 
-            // 모델에 데이터 추가
+            List<KeywordDTO> popularKeywords = popularKeywordService.getPopularKeywords(5);
+
             model.addAttribute("monthlyBestSellers", monthlyBestSellers);
             model.addAttribute("weeklyBestSellers", weeklyBestSellers);
+            model.addAttribute("popularKeywords", popularKeywords);
 
             log.info("BestSellers loaded - Monthly: {}, Weekly: {}",
                     monthlyBestSellers.size(), weeklyBestSellers.size());
 
         } catch (Exception e) {
             log.error("Error loading bestsellers", e);
-            // 에러 발생시 빈 리스트로 처리
             model.addAttribute("monthlyBestSellers", List.of());
             model.addAttribute("weeklyBestSellers", List.of());
         }

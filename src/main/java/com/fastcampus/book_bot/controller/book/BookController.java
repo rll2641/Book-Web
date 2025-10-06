@@ -3,6 +3,8 @@ package com.fastcampus.book_bot.controller.book;
 import com.fastcampus.book_bot.domain.book.Book;
 import com.fastcampus.book_bot.dto.book.SearchDTO;
 import com.fastcampus.book_bot.service.book.BookSearchService;
+import com.fastcampus.book_bot.service.navigation.PopularKeywordService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,14 +19,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import java.util.Optional;
 
 @Controller
+@RequiredArgsConstructor
 @Slf4j
 public class BookController {
 
     private final BookSearchService bookSearchService;
+    private final PopularKeywordService popularKeywordService;
 
-    public BookController(BookSearchService bookSearchService) {
-        this.bookSearchService = bookSearchService;
-    }
 
     @GetMapping("/search")
     public String searchBooks(@ModelAttribute SearchDTO searchDTO,
@@ -36,6 +37,8 @@ public class BookController {
                 searchDTO.getSearchType(),
                 pageable
         );
+
+        popularKeywordService.recordKeyword(searchDTO);
 
         searchDTO.setSearchResult(searchResult);
         searchDTO.setPageInfo(pageable);

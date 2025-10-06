@@ -1,15 +1,180 @@
 <!-- 인기 검색어 -->
 <div th:fragment="popularKeywords" class="popular-keywords">
-  <h5>🔥 실시간 인기 검색어</h5>
-  <div class="list-group">
-    <div class="list-group-item d-flex justify-content-between align-items-center"
-         th:each="keyword, iterStat : ${popularKeywords}">
-      <div>
-        <span class="keyword-rank" th:text="${iterStat.count}">1</span>
-        <a th:href="'/search?keyword=' + ${keyword.keyword}"
-           class="text-decoration-none ms-2" th:text="${keyword.keyword}">검색어</a>
-      </div>
-      <span class="badge bg-secondary" th:text="${keyword.count}">123</span>
-    </div>
+  <style>
+    .popular-keywords {
+      margin-bottom: 30px;
+    }
+
+    .popular-keywords .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .popular-keywords .section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .popular-keywords .fire-icon {
+      font-size: 1.3rem;
+      animation: fire-flicker 1.5s infinite alternate;
+    }
+
+    @keyframes fire-flicker {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .popular-keywords .keyword-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .popular-keywords .keyword-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .popular-keywords .keyword-item:hover {
+      background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+      border-color: #6366f1;
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    .popular-keywords .keyword-rank {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 0.85rem;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .popular-keywords .keyword-item:nth-child(1) .keyword-rank {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+    }
+
+    .popular-keywords .keyword-item:nth-child(2) .keyword-rank {
+      background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4);
+    }
+
+    .popular-keywords .keyword-item:nth-child(3) .keyword-rank {
+      background: linear-gradient(135deg, #cd7f32, #e9a854);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4);
+    }
+
+    .popular-keywords .keyword-item:nth-child(n+4) .keyword-rank {
+      background: #f1f5f9;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    .popular-keywords .keyword-link {
+      flex: 1;
+      text-decoration: none;
+      color: #334155;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: color 0.3s ease;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .popular-keywords .keyword-item:hover .keyword-link {
+      color: #6366f1;
+    }
+
+    .popular-keywords .keyword-count {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 10px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    }
+
+    .popular-keywords .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #94a3b8;
+    }
+
+    .popular-keywords .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    .popular-keywords .empty-text {
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .popular-keywords .update-time {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #f0f0f0;
+    }
+  </style>
+
+  <div class="section-header">
+    <h5 class="section-title">
+      <span class="fire-icon">🔥</span>
+      <span>실시간 인기 검색어</span>
+    </h5>
+  </div>
+
+  <!-- 검색어 리스트 -->
+  <ul class="keyword-list" th:if="${popularKeywords != null and !popularKeywords.isEmpty()}">
+    <li class="keyword-item" th:each="keyword, iterStat : ${popularKeywords}">
+      <span class="keyword-rank" th:text="${iterStat.count}">1</span>
+      <a th:href="'/search?keyword=' + ${keyword.keyword}"
+         class="keyword-link"
+         th:text="${keyword.keyword}">검색어</a>
+      <span class="keyword-count" th:text="${keyword.count}">123</span>
+    </li>
+  </ul>
+
+  <!-- 데이터가 없을 때 -->
+  <div class="empty-state" th:if="${popularKeywords == null or popularKeywords.isEmpty()}">
+    <div class="empty-icon">🔍</div>
+    <p class="empty-text">아직 검색 기록이 없습니다</p>
+  </div>
+
+  <!-- 업데이트 시간 -->
+  <div class="update-time" th:if="${popularKeywords != null and !popularKeywords.isEmpty()}">
+    실시간 업데이트
   </div>
 </div>
