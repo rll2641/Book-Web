@@ -109,4 +109,33 @@ public class BestSellerService {
             log.error("월간 베스트셀러 캐시 갱신 실패", e);
         }
     }
+
+    // Redis 대신 DB에서 직접 조회하는 메서드
+    @Transactional(readOnly = true)
+    public List<Book> getWeekBestSellerFromDB() {
+        log.info("주간 베스트셀러 DB 직접 조회");
+        LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+        List<BookSalesDTO> weeklyBestSellers = orderBookRepository.findWeeklyBestSellers(weekAgo);
+
+        List<Book> bookList = new ArrayList<>();
+        for (BookSalesDTO bookSalesDTO : weeklyBestSellers) {
+            Optional<Book> book = bookRepository.findById(bookSalesDTO.getBookId());
+            book.ifPresent(bookList::add);
+        }
+        return bookList;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Book> getMonthBestSellerFromDB() {
+        log.info("월간 베스트셀러 DB 직접 조회");
+        LocalDateTime monthAgo = LocalDateTime.now().minusDays(30);
+        List<BookSalesDTO> monthlySalesList = orderBookRepository.findMonthlyBestSellers(monthAgo);
+
+        List<Book> bookList = new ArrayList<>();
+        for (BookSalesDTO bookSalesDTO : monthlySalesList) {
+            Optional<Book> book = bookRepository.findById(bookSalesDTO.getBookId());
+            book.ifPresent(bookList::add);
+        }
+        return bookList;
+    }
 }

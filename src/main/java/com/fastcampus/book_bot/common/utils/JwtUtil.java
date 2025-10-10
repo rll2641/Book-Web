@@ -5,9 +5,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
@@ -16,6 +19,7 @@ import java.util.function.Function;
 @Component
 @Data
 @ConfigurationProperties(prefix = "jwt")
+@Slf4j
 public class JwtUtil {
 
     private String secretKey;
@@ -105,6 +109,21 @@ public class JwtUtil {
     public boolean validateToken(String token, Integer userId) {
         final Integer tokenUserId = extractUserId(token);
         return (tokenUserId.equals(userId) && !isTokenExpired(token));
+    }
+
+    public Integer extractUserIdFromRequest(HttpServletRequest request) {
+        String authorization = request.getHeader("Authorization");
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            try {
+                String accessToken = authorization.substring(7);
+                if (!isTokenExpired(accessToken)) {
+                    return extractUserId(accessToken);
+                }
+            } catch (Exception e) {
+                log.debug("Authorization Header JWT 파싱 실패", e);
+            }
+        }
+        return null;
     }
 
 }

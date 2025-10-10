@@ -35,7 +35,12 @@ services:
       - redis-data:/data
     networks:
       - bookshop-network
-    command: redis-server --appendonly yes
+    command: >
+      redis-server 
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy volatile-lru
+      --maxmemory-samples 5
 
   flyway:
     image: flyway/flyway:9.22.3
