@@ -13,23 +13,429 @@
 </div>
 
 <style>
-  .banner-item {
-    padding: 10px;
+  .recent-books {
+    width: 100%;
+    margin-top: 30px;
+  }
+
+  .recent-books-header {
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+
+  .book-slider-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .book-slider-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .book-slider {
+    flex: 1;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    min-height: 300px;
+    position: relative;
+  }
+
+  .book-slide {
+    display: none;
+    padding: 20px;
+    animation: fadeIn 0.4s ease-in-out;
+  }
+
+  .book-slide.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .book-slide-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .book-image-wrapper {
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .book-image {
+    width: 100%;
+    height: auto;
     border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+  }
+
+  .book-image:hover {
+    transform: scale(1.05);
+  }
+
+  .book-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .book-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .book-author {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0;
+  }
+
+  .book-publisher {
+    font-size: 0.75rem;
+    color: #888;
+    margin: 0;
+  }
+
+  .book-price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-top: 5px;
+  }
+
+  .book-link-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
     transition: all 0.3s ease;
-    background: var(--bg-light);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
   }
 
-  .banner-item:hover {
-    background: #f3f4f6;
-    transform: translateX(5px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  .book-link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    color: white;
   }
 
-  .banner-item a:hover {
-    color: var(--primary-color) !important;
+  .slider-btn {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+    flex-shrink: 0;
+    padding: 0;
+  }
+
+  .slider-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  .slider-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .slider-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .slider-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 15px;
+  }
+
+  .indicator-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d0d0d0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .indicator-dot.active {
+    background: var(--primary-color);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .indicator-dot:hover {
+    background: #999;
+  }
+
+  .empty-recent-books {
+    text-align: center;
+    padding: 30px 20px;
+    color: #999;
+    font-size: 0.9rem;
   }
 </style>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    loadRecentBooks();
+  });
+
+  let currentIndex = 0;
+  let books = [];
+
+  async function loadRecentBooks() {
+    const container = document.querySelector('#recent-books-container');
+    if (!container) return;
+
+    const accessToken = sessionStorage.getItem('accessToken');
+
+    if (!accessToken) {
+      container.innerHTML = `
+        <div class="empty-recent-books">
+          최근 조회한 책이 없습니다
+        </div>
+      `;
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/recent-books', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (response.ok) {
+        books = await response.json();
+
+        if (!books || books.length === 0) {
+          container.innerHTML = `
+            <div class="empty-recent-books">
+              최근 조회한 책이 없습니다
+            </div>
+          `;
+          return;
+        }
+
+        renderRecentBooksSlider(books);
+      } else {
+        container.innerHTML = `
+          <div class="empty-recent-books">
+            최근 조회한 책이 없습니다
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error('최근 본 책 로딩 실패:', error);
+      container.innerHTML = `
+        <div class="empty-recent-books">
+          최근 조회한 책이 없습니다
+        </div>
+      `;
+    }
+  }
+
+  function renderRecentBooksSlider(books) {
+    const container = document.querySelector('#recent-books-container');
+
+    let html = `
+      <div class="recent-books-header">
+        <h5 class="sidebar-title mb-0">👀 최근 조회한 책</h5>
+      </div>
+      <div class="book-slider-wrapper">
+        <div class="book-slider-container">
+          <!-- 이전 버튼 -->
+          <button class="slider-btn slider-btn-prev" id="prevBtn" aria-label="이전 책">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <!-- 슬라이드 영역 -->
+          <div class="book-slider" id="bookSlider">
+    `;
+
+    books.forEach((book, index) => {
+      html += `
+        <div class="book-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
+          <div class="book-slide-content">
+            <div class="book-image-wrapper">
+              <img src="${book.bookImagePath || 'https://via.placeholder.com/200x300?text=No+Image'}"
+                   alt="${book.bookName}"
+                   class="book-image"
+                   referrerpolicy="no-referrer"
+                   onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+            </div>
+            <div class="book-info">
+              <h6 class="book-title">${book.bookName}</h6>
+              <p class="book-author">${book.bookAuthor || '저자 정보 없음'}</p>
+              <p class="book-publisher">${book.bookPublisher || '출판사 정보 없음'}</p>
+              ${book.bookDiscount ? `<div class="book-price">${book.bookDiscount.toLocaleString()}원</div>` : ''}
+              <a href="javascript:void(0)" onclick="goToBookDetail(${book.bookId})" class="book-link-btn">자세히 보기</a>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+          </div>
+
+          <!-- 다음 버튼 -->
+          <button class="slider-btn slider-btn-next" id="nextBtn" aria-label="다음 책">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 인디케이터 -->
+        <div class="slider-indicators" id="sliderIndicators">
+    `;
+
+    books.forEach((_, index) => {
+      html += `<span class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>`;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+
+    // 이벤트 리스너 등록
+    initSliderEvents();
+  }
+
+  function initSliderEvents() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+          goToSlide(currentIndex - 1);
+        }
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (currentIndex < books.length - 1) {
+          goToSlide(currentIndex + 1);
+        }
+      });
+    }
+
+    // 인디케이터 클릭 이벤트
+    document.querySelectorAll('.indicator-dot').forEach(dot => {
+      dot.addEventListener('click', function() {
+        const index = parseInt(this.dataset.index);
+        goToSlide(index);
+      });
+    });
+
+    // 키보드 방향키 이벤트
+    document.addEventListener('keydown', handleKeyPress);
+
+    updateButtons();
+  }
+
+  function handleKeyPress(e) {
+    if (books.length === 0) return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (currentIndex > 0) {
+        goToSlide(currentIndex - 1);
+      }
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (currentIndex < books.length - 1) {
+        goToSlide(currentIndex + 1);
+      }
+    }
+  }
+
+  function goToSlide(index) {
+    if (index < 0 || index >= books.length) return;
+
+    // 현재 슬라이드 비활성화
+    const slides = document.querySelectorAll('.book-slide');
+    if (slides[currentIndex]) {
+      slides[currentIndex].classList.remove('active');
+    }
+
+    // 새 슬라이드 활성화
+    currentIndex = index;
+    if (slides[currentIndex]) {
+      slides[currentIndex].classList.add('active');
+    }
+
+    // 인디케이터 업데이트
+    document.querySelectorAll('.indicator-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === currentIndex);
+    });
+
+    updateButtons();
+  }
+
+  function updateButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    if (prevBtn) {
+      prevBtn.disabled = currentIndex === 0;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = currentIndex === books.length - 1;
+    }
+  }
+</script>
+
 </body>
 </html>
+

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
   <title>온라인 서점 - 메인</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
@@ -312,6 +313,198 @@
       overflow: hidden;
     }
 
+    /* 최근 본 책 슬라이드 스타일 */
+    .recent-books-header {
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .book-slider-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .book-slider-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .book-slider {
+      flex: 1;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      min-height: 300px;
+      position: relative;
+    }
+
+    .book-slide {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .book-slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .book-slide-content {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+      text-align: center;
+    }
+
+    .book-image-wrapper {
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .book-image {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease;
+    }
+
+    .book-image:hover {
+      transform: scale(1.05);
+    }
+
+    .book-slide .book-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .book-slide .book-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .book-slide .book-author {
+      font-size: 0.8rem;
+      color: #666;
+      margin: 0;
+    }
+
+    .book-slide .book-publisher {
+      font-size: 0.75rem;
+      color: #888;
+      margin: 0;
+    }
+
+    .book-slide .book-price {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-top: 5px;
+    }
+
+    .book-link-btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .book-link-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      color: white;
+    }
+
+    .slider-btn {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #666;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .slider-btn:hover:not(:disabled) {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .slider-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .slider-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .slider-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 15px;
+    }
+
+    .indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d0d0d0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .indicator-dot.active {
+      background: var(--primary-color);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    .indicator-dot:hover {
+      background: #999;
+    }
+
     @media (max-width: 768px) {
       .section-title {
         font-size: 2rem;
@@ -325,95 +518,19 @@
         margin-left: 0;
         margin-top: 20px;
       }
-      /* 최근 본 책 스타일 */
-      .recent-books-header {
-        border-bottom: 2px solid var(--primary-color);
-        padding-bottom: 10px;
-        margin-bottom: 15px;
+
+      .book-image-wrapper {
+        width: 100px;
       }
 
-      .recent-book-item {
-        display: flex;
-        align-items: flex-start;
-        padding: 12px;
-        margin-bottom: 8px;
-        background: var(--bg-light);
-        border-radius: 12px;
-        border-left: 3px solid var(--primary-color);
-        transition: all 0.3s ease;
+      .slider-btn {
+        width: 32px;
+        height: 32px;
       }
 
-      .recent-book-item:hover {
-        background: #f3f4f6;
-        transform: translateX(5px);
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
-        border-left-color: var(--secondary-color);
-      }
-
-      .book-rank {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.85rem;
-        margin-right: 12px;
-        box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
-      }
-
-      .book-info {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .book-title-link {
-        display: block;
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--text-dark);
-        text-decoration: none;
-        line-height: 1.4;
-        margin-bottom: 6px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        transition: color 0.2s ease;
-      }
-
-      .book-title-link:hover {
-        color: var(--primary-color);
-      }
-
-      .book-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .book-author {
-        font-size: 0.75rem;
-        color: var(--text-light);
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .book-price {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        white-space: nowrap;
+      .slider-btn svg {
+        width: 16px;
+        height: 16px;
       }
     }
   </style>
@@ -618,6 +735,9 @@
   });
 
   // 최근 본 상품 표시 함수 개선
+  let recentBooksCurrentIndex = 0;
+  let recentBooksData = [];
+
   function displayRecentBooks(books) {
     const container = document.querySelector('#recent-books-container');
     if (!container) return;
@@ -631,31 +751,162 @@
       return;
     }
 
+    recentBooksData = books;
+    recentBooksCurrentIndex = 0;
+
     let html = `
     <div class="recent-books-header">
       <h5 class="sidebar-title mb-3">👀 최근 조회한 책</h5>
     </div>
+    <div class="book-slider-wrapper">
+      <div class="book-slider-container">
+        <!-- 이전 버튼 -->
+        <button class="slider-btn slider-btn-prev" id="recentPrevBtn" aria-label="이전 책">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <!-- 슬라이드 영역 -->
+        <div class="book-slider" id="recentBookSlider">
   `;
 
     books.forEach((book, index) => {
       html += `
-      <div class="recent-book-item">
-        <div class="book-info">
-          <a href="javascript:void(0)"
-             onclick="goToBookDetail(${book.bookId})"
-             class="book-title-link">
-            ${book.bookName}
-          </a>
-          <div class="book-meta">
-            <span class="book-author">${book.bookAuthor || '저자 미상'}</span>
-            <span class="book-price">${book.bookDiscount ? book.bookDiscount.toLocaleString() : '0'}원</span>
+        <div class="book-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
+          <div class="book-slide-content">
+            <div class="book-image-wrapper">
+              <img src="${book.bookImagePath || 'https://via.placeholder.com/200x300?text=No+Image'}"
+                   alt="${book.bookName}"
+                   class="book-image"
+                   referrerpolicy="no-referrer"
+                   onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'">
+            </div>
+            <div class="book-info">
+              <h6 class="book-title">${book.bookName}</h6>
+              <p class="book-author">${book.bookAuthor || '저자 정보 없음'}</p>
+              <p class="book-publisher">${book.bookPublisher || '출판사 정보 없음'}</p>
+              ${book.bookDiscount ? `<div class="book-price">${book.bookDiscount.toLocaleString()}원</div>` : ''}
+              <a href="javascript:void(0)" onclick="goToBookDetail(${book.bookId})" class="book-link-btn">자세히 보기</a>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
     });
 
+    html += `
+        </div>
+
+        <!-- 다음 버튼 -->
+        <button class="slider-btn slider-btn-next" id="recentNextBtn" aria-label="다음 책">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 인디케이터 -->
+      <div class="slider-indicators" id="recentSliderIndicators">
+    `;
+
+    books.forEach((_, index) => {
+      html += `<span class="indicator-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></span>`;
+    });
+
+    html += `
+      </div>
+    </div>
+  `;
+
     container.innerHTML = html;
+
+    // 이벤트 리스너 등록
+    initRecentBooksSliderEvents();
+  }
+
+  function initRecentBooksSliderEvents() {
+    const prevBtn = document.getElementById('recentPrevBtn');
+    const nextBtn = document.getElementById('recentNextBtn');
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (recentBooksCurrentIndex > 0) {
+          goToRecentBookSlide(recentBooksCurrentIndex - 1);
+        }
+      });
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (recentBooksCurrentIndex < recentBooksData.length - 1) {
+          goToRecentBookSlide(recentBooksCurrentIndex + 1);
+        }
+      });
+    }
+
+    // 인디케이터 클릭 이벤트
+    document.querySelectorAll('#recentSliderIndicators .indicator-dot').forEach(dot => {
+      dot.addEventListener('click', function() {
+        const index = parseInt(this.dataset.index);
+        goToRecentBookSlide(index);
+      });
+    });
+
+    // 키보드 방향키 이벤트
+    document.addEventListener('keydown', handleRecentBooksKeyPress);
+
+    updateRecentBooksButtons();
+  }
+
+  function handleRecentBooksKeyPress(e) {
+    if (recentBooksData.length === 0) return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      if (recentBooksCurrentIndex > 0) {
+        goToRecentBookSlide(recentBooksCurrentIndex - 1);
+      }
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      if (recentBooksCurrentIndex < recentBooksData.length - 1) {
+        goToRecentBookSlide(recentBooksCurrentIndex + 1);
+      }
+    }
+  }
+
+  function goToRecentBookSlide(index) {
+    if (index < 0 || index >= recentBooksData.length) return;
+
+    // 현재 슬라이드 비활성화
+    const slides = document.querySelectorAll('#recentBookSlider .book-slide');
+    if (slides[recentBooksCurrentIndex]) {
+      slides[recentBooksCurrentIndex].classList.remove('active');
+    }
+
+    // 새 슬라이드 활성화
+    recentBooksCurrentIndex = index;
+    if (slides[recentBooksCurrentIndex]) {
+      slides[recentBooksCurrentIndex].classList.add('active');
+    }
+
+    // 인디케이터 업데이트
+    document.querySelectorAll('#recentSliderIndicators .indicator-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === recentBooksCurrentIndex);
+    });
+
+    updateRecentBooksButtons();
+  }
+
+  function updateRecentBooksButtons() {
+    const prevBtn = document.getElementById('recentPrevBtn');
+    const nextBtn = document.getElementById('recentNextBtn');
+
+    if (prevBtn) {
+      prevBtn.disabled = recentBooksCurrentIndex === 0;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = recentBooksCurrentIndex === recentBooksData.length - 1;
+    }
   }
 
   // 책 상세 페이지 이동
@@ -689,5 +940,220 @@
     }
   }
 </script>
+<!-- 채팅 버튼 (우측 하단 고정) -->
+<div id="chat-button" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+  <button onclick="openChatbot()" style="
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: all 0.3s ease;
+  " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    💬
+  </button>
+</div>
+
+<!-- 채팅 모달 -->
+<div id="chat-modal" style="
+  display: none;
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 400px;
+  height: 600px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  z-index: 1001;
+  overflow: hidden;
+">
+  <!-- 채팅 헤더 -->
+  <div style="
+    background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+    padding: 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  ">
+    <h5 style="margin: 0; font-weight: bold;"> 쁘띠 서점 도우미</h5>
+    <button onclick="closeChatbot()" style="
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    ">×</button>
+  </div>
+
+  <!-- 채팅 메시지 영역 -->
+  <div id="chat-messages" style="
+    height: 450px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f9fafb;
+  ">
+    <div style="text-align: center; padding: 20px; color: #999;">
+      안녕하세요! 어떤 책을 찾고 계신가요? 💕
+    </div>
+  </div>
+
+  <!-- 입력 영역 -->
+  <div style="padding: 15px; background: white; border-top: 1px solid #e5e7eb;">
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." style="
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #ffb6c1;
+        border-radius: 25px;
+        outline: none;
+      " onkeypress="if(event.key==='Enter') sendMessage()">
+      <button onclick="sendMessage()" style="
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+        border: none;
+        border-radius: 25px;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+      ">💌</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 채팅봇 열기/닫기
+  function openChatbot() {
+    document.getElementById('chat-modal').style.display = 'block';
+  }
+
+  function closeChatbot() {
+    document.getElementById('chat-modal').style.display = 'none';
+  }
+
+  // 메시지 전송
+  async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // 사용자 메시지 추가
+    addMessage(message, 'user');
+    input.value = '';
+
+    // 로딩 표시
+    const loadingId = addLoadingMessage();
+
+    try {
+      // FastAPI 서버로 요청 (포트 8002)
+      const response = await fetch('http://localhost:8002/test_chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: message })
+      });
+
+      const data = await response.json();
+
+      // 로딩 제거
+      removeLoadingMessage(loadingId);
+
+      // 봇 응답 추가
+      addMessage(data.response, 'bot');
+
+    } catch (error) {
+      removeLoadingMessage(loadingId);
+      addMessage('죄송합니다. 서버 연결에 문제가 발생했습니다.', 'bot');
+      console.error('Error:', error);
+    }
+  }
+
+  // 메시지 추가
+  function addMessage(text, sender) {
+    const messagesDiv = document.getElementById('chat-messages');
+
+    const messageDiv = document.createElement('div');
+    messageDiv.style.marginBottom = '15px';
+    messageDiv.style.display = 'flex';
+    messageDiv.style.alignItems = 'flex-start';
+
+    if (sender === 'user') {
+      messageDiv.style.justifyContent = 'flex-end';
+      messageDiv.innerHTML = `
+      <div style="
+        max-width: 70%;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #ff6b9d, #ff8fab);
+        color: white;
+        border-radius: 20px;
+        border-bottom-right-radius: 5px;
+      ">${text}</div>
+    `;
+    } else {
+      messageDiv.style.justifyContent = 'flex-start';
+      messageDiv.innerHTML = `
+      <div style="
+        max-width: 80%;
+        padding: 12px 16px;
+        background: white;
+        border: 2px solid #ffb6c1;
+        border-radius: 20px;
+        border-bottom-left-radius: 5px;
+      ">${text}</div>
+    `;
+    }
+
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  // 로딩 메시지
+  function addLoadingMessage() {
+    const messagesDiv = document.getElementById('chat-messages');
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading-message';
+    loadingDiv.style.marginBottom = '15px';
+    loadingDiv.innerHTML = `
+    <div style="padding: 12px; background: #f3f4f6; border-radius: 20px; display: inline-block;">
+      <span style="animation: blink 1.4s infinite;">●</span>
+      <span style="animation: blink 1.4s infinite 0.2s;">●</span>
+      <span style="animation: blink 1.4s infinite 0.4s;">●</span>
+    </div>
+  `;
+    messagesDiv.appendChild(loadingDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    return 'loading-message';
+  }
+
+  function removeLoadingMessage(id) {
+    const loading = document.getElementById(id);
+    if (loading) loading.remove();
+  }
+</script>
+
+<style>
+  @keyframes blink {
+    0%, 60%, 100% { opacity: 0.3; }
+    30% { opacity: 1; }
+  }
+
+  #chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #chat-messages::-webkit-scrollbar-thumb {
+    background: #ffb6c1;
+    border-radius: 3px;
+  }
+</style>
 </body>
 </html>

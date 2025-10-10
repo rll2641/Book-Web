@@ -57,6 +57,7 @@ public class BookCacheService {
         Map<String, String> bookData = new HashMap<>();
         bookData.put("bookId", String.valueOf(book.getBookId()));
         bookData.put("title", book.getBookName());
+        bookData.put("imagePath", book.getBookImagePath());
         bookData.put("author", book.getBookAuthor() != null ? book.getBookAuthor() : "");
         bookData.put("publisher", book.getBookPublisher() != null ? book.getBookPublisher() : "");
         bookData.put("price", String.valueOf(book.getBookDiscount()));
@@ -156,6 +157,7 @@ public class BookCacheService {
         Book book = new Book();
         book.setBookId(Integer.valueOf((String) bookData.get("bookId")));
         book.setBookName((String) bookData.get("title"));
+        book.setBookImagePath((String) bookData.get("imagePath"));
         book.setBookAuthor((String) bookData.get("author"));
         book.setBookPublisher((String) bookData.get("publisher"));
         book.setBookDiscount(Integer.valueOf((String) bookData.get("price")));

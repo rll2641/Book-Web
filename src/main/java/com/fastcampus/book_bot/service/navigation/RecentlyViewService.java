@@ -97,6 +97,7 @@ public class RecentlyViewService {
         Book book = new Book();
         book.setBookId(Integer.valueOf((String) bookData.get("bookId")));
         book.setBookName((String) bookData.get("title"));
+        book.setBookImagePath((String) bookData.get("imagePath"));
         book.setBookAuthor((String) bookData.get("author"));
         book.setBookPublisher((String) bookData.get("publisher"));
         book.setBookDiscount(Integer.valueOf((String) bookData.get("price")));
